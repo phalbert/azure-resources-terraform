@@ -1,3 +1,14 @@
+variable "subscription_id" {
+  type        = string
+  description = "Subscription ID in Azure"
+}
+
+variable "tenant_id" {
+  type        = string
+  default     = "XXXXXXX-1111-2222-3333-YYYYYYYYY"
+  description = "Tenant ID in Azure"
+}
+
 variable "resource_group_name" {
   type        = string
   default     = "myTFResourceGroup"
