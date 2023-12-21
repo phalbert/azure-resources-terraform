@@ -1,0 +1,36 @@
+{
+    "identifier": "create_azure_storage",
+    "title": "Create Azure Storage",
+    "icon": "S3",
+    "userInputs": {
+        "properties": {
+            "storage_name": {
+                "title": "Storage Name",
+                "type": "string",
+                "minLength": 3,
+                "maxLength": 63
+            },
+            "storage_location": {
+                "icon": "DefaultProperty",
+                "title": "Storage Location",
+                "description": "storage account geo region",
+                "type": "string"
+            }
+        },
+        "required": [
+            "storage_name"
+        ],
+        "order": [
+            "storage_name"
+        ]
+    },
+    "invocationMethod": {
+        "type": "WEBHOOK",
+        "agent": false,
+        "url": "https://improved-morally-caiman.ngrok-free.app/generic-webhook-trigger/invoke?token=11f49c8f3504dbcfacd1c76a731bddc6ca",
+        "synchronized": false,
+        "method": "POST"
+    },
+    "trigger": "CREATE",
+    "requiredApproval": false
+}
