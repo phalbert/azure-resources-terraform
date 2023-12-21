@@ -1,5 +1,6 @@
 variable "subscription_id" {
   type        = string
+  default     = "XXXXXX-1111-2222-3333-YYYYYYYYYY"
   description = "Subscription ID in Azure"
 }
 
