@@ -12,7 +12,7 @@ variable "tenant_id" {
 
 variable "resource_group_name" {
   type        = string
-  default     = "myTFResourceGroup"
+  default     = "DefaultResources"
   description = "RG name in Azure"
 }
 
