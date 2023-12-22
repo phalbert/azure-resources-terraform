@@ -2,38 +2,38 @@ import groovy.json.JsonSlurper
 
 pipeline {
     agent any
-    parameters {
-        choice(name: 'ACTION', choices: ['apply', 'destroy'], description: 'What action should Terraform take?')
+    tools {
+        "org.jenkinsci.plugins.terraform.TerraformInstallation" "terraform"
     }
     environment {
-        // azure credentials
-        ARM_CLIENT_ID = credentials('azure-client-id')
-        ARM_CLIENT_SECRET = credentials('azure-client-secret')
-        ARM_SUBSCRIPTION_ID = credentials('azure-subscription-id')
-        ARM_TENANT_ID = credentials('azure-tenant-id')
-
+        TF_HOME = tool('terraform')
+        TF_IN_AUTOMATION = "true"
+        PATH = "$TF_HOME:$PATH"
+        
         PORT_CLIENT_ID = credentials('port-client-id')
         PORT_CLIENT_SECRET = credentials('port-client-secret')
+        
         ACCESS_TOKEN = ""
+        endpoint_url = ""
 
-        storage_name = "demo"
-        storage_location = "westus2"
     }
-
+    
     // uncomment for webhook trigger
-    // triggers {
-    //     GenericTrigger(
-    //         genericVariables: [
-    //             [key: 'storage_name', value: '$.payload.properties.storage_name']
-    //             [key: 'storage_location', value: '$.payload.properties.storage_location']
-    //         ],
-    //         causeString: 'Triggered on $ref',
-    //         regexpFilterExpression: '',
-    //         regexpFilterText: '',
-    //         printContributedVariables: true,
-    //         printPostContent: true
-    //     )
-    // }
+    triggers {
+        GenericTrigger(
+            genericVariables: [
+                [key: 'storage_name', value: '$.payload.properties.storage_name'],
+                [key: 'storage_location', value: '$.payload.properties.storage_location'],
+                [key: 'RUN_ID', value: '$.context.runId'],
+                [key: 'BLUEPRINT_ID', value: '$.context.blueprint']
+            ],
+            causeString: 'Triggered on RUN_ID',
+            regexpFilterExpression: '',
+            regexpFilterText: '',
+            printContributedVariables: true,
+            printPostContent: true
+        )
+    }
 
     stages {
         stage('Checkout') {
@@ -43,12 +43,24 @@ pipeline {
         }
         stage('Terraform') {
             steps {
-                script {
-                    sh 'terraform init'
-                    sh 'terraform validate'
-                    sh "terraform plan -out=tfplan -var storage_account_name=$storage_name -var location=$storage_location"
-                    sh "terraform ${params.ACTION} -auto-approve -input=false tfplan"
-                    def ip_address = sh(script: 'terraform output public_ip', returnStdout: true).trim()
+
+                    ansiColor('xterm') {
+                    withCredentials([azureServicePrincipal(
+                    credentialsId: 'azure',
+                    subscriptionIdVariable: 'ARM_SUBSCRIPTION_ID',
+                    clientIdVariable: 'ARM_CLIENT_ID',
+                    clientSecretVariable: 'ARM_CLIENT_SECRET',
+                    tenantIdVariable: 'ARM_TENANT_ID'
+                )]) {
+                        sh 'terraform init'
+                        sh 'terraform validate'
+                        sh """
+                        
+                        echo "Creating Terraform Plan"
+                        terraform plan -out=tfplan -var storage_account_name=$storage_name -var location=$storage_location -var "client_id=$ARM_CLIENT_ID" -var "client_secret=$ARM_CLIENT_SECRET" -var "subscription_id=$ARM_SUBSCRIPTION_ID" -var "tenant_id=$ARM_TENANT_ID"
+                        """
+                        sh "terraform apply -auto-approve -input=false tfplan"
+                        }
                 }
             }
         }
@@ -74,19 +86,20 @@ pipeline {
             }
         }
 
-		stage('CREATE entity') {
+		stage('Create entity') {
             steps {
                 script {
-                    def terraformOutput = sh(script: 'cd terraform && terraform output endpoint_url | sed \'s/"//g\'', returnStdout: true)
+                    def terraformOutput = sh(script: 'terraform output endpoint_url | sed \'s/"//g\'', returnStdout: true)
+                    endpoint_url = terraformOutput
                 
                     def status_report_response = sh(script: """
 						curl --location --request POST "https://api.getport.io/v1/blueprints/$BLUEPRINT_ID/entities?upsert=true&run_id=$RUN_ID&create_missing_related_entities=true" \
         --header "Authorization: Bearer $ACCESS_TOKEN" \
         --header "Content-Type: application/json" \
         --data-raw '{
-				"identifier": "some_identifier",
-				"title": "Some Title",
-				"properties": {"storage_name":"$storage_name","storage_location":"$storage_location"},
+				"identifier": "$storage_name",
+				"title": "$storage_name",
+				"properties": {"storage_name":"$storage_name","storage_location":"$storage_location", "endpoint": "$endpoint_url"},
 				"relations": {}
 			}'
 
