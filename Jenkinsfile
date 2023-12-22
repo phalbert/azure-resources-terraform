@@ -15,6 +15,7 @@ pipeline {
         
         ACCESS_TOKEN = ""
         endpoint_url = ""
+        terraform_result = ""
 
     }
     
@@ -27,7 +28,10 @@ pipeline {
                 [key: 'RUN_ID', value: '$.context.runId'],
                 [key: 'BLUEPRINT_ID', value: '$.context.blueprint']
             ],
-            causeString: 'Triggered on RUN_ID',
+            causeString: 'Triggered by Port',
+            allowSeveralTriggersPerBuild: true,
+            tokenCredentialId: "webhook-token",
+            
             regexpFilterExpression: '',
             regexpFilterText: '',
             printContributedVariables: true,
@@ -117,7 +121,7 @@ pipeline {
                         curl -X POST \
                             -H "Content-Type: application/json" \
                             -H "Authorization: Bearer ${ACCESS_TOKEN}" \
-                            -d '{"message": "this is a log test message example"}' \
+                            -d '{"message": "Finished running terraform task for $storage_name"}' \
                             "https://api.getport.io/v1/actions/runs/$RUN_ID/logs"
                     """, returnStdout: true)
 
