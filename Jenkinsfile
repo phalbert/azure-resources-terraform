@@ -17,7 +17,7 @@ pipeline {
         ACCESS_TOKEN = ""
 
         storage_name = "demo"
-        storage_location = "uswest2"
+        storage_location = "westus2"
     }
 
     // uncomment for webhook trigger

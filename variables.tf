@@ -1,13 +1,27 @@
+# Service Principal Variables
+
+variable "client_id" {
+    description =   "Client ID (APP ID) of the application"
+    default     = "XXXXXX-1111-2222-3333-YYYYYYYYYY"
+    type        =   string
+}
+
+variable "client_secret" {
+    description =   "Client Secret (Password) of the application"
+    default     = "XXXXXX-1111-2222-3333-YYYYYYYYYY"
+    type        =   string
+}
+
 variable "subscription_id" {
-  type        = string
-  default     = "XXXXXX-1111-2222-3333-YYYYYYYYYY"
-  description = "Subscription ID in Azure"
+    description =   "Subscription ID"
+    default     = "XXXXXX-1111-2222-3333-YYYYYYYYYY"
+    type        =   string
 }
 
 variable "tenant_id" {
-  type        = string
-  default     = "XXXXXXX-1111-2222-3333-YYYYYYYYY"
-  description = "Tenant ID in Azure"
+    description =   "Tenant ID"
+    default     = "XXXXXX-1111-2222-3333-YYYYYYYYYY"
+    type        =   string
 }
 
 variable "resource_group_name" {
