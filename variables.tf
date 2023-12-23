@@ -25,10 +25,10 @@ variable "port_run_id" {
 
 variable "port_client_id" {
   type        = string
-  description = "The runID of the action run that created the entity"
+  description = "The Port client ID"
 }
 
 variable "port_client_secret" {
   type        = string
-  description = "The runID of the action run that created the entity"
+  description = "The Port client secret"
 }

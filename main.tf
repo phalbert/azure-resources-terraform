@@ -35,7 +35,7 @@ resource "azurerm_storage_account" "storage_account" {
 }
 
 resource "port_entity" "azure_storage_account" {
-  count      = azurerm_storage_account.storage_account.primary_web_endpoint ? 1 : 0
+  count      = length(azurerm_storage_account.storage_account) > 0 ? 1 : 0
   identifier = var.storage_account_name
   title      = var.storage_account_name
   blueprint  = "azureStorage"
@@ -44,7 +44,7 @@ resource "port_entity" "azure_storage_account" {
     string_props = {
       "storage_name"     = var.storage_account_name,
       "storage_location" = var.location,
-      "enpoint"          = azurerm_storage_account.storage_account.primary_web_endpoint
+      "endpoint"          = azurerm_storage_account.storage_account.primary_web_endpoint
     }
   }
 
