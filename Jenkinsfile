@@ -94,7 +94,11 @@ pipeline {
             steps {
                 script {
                     def terraformOutput = sh(script: 'terraform output endpoint_url | sed \'s/"//g\'', returnStdout: true)
-                    endpoint_url = terraformOutput
+                    // Remove any newline characters
+                    terraformOutput = terraformOutput.replaceAll('\n', '')
+                    
+                    // Maintain the previous functionality of trimming the string
+                    endpoint_url = terraformOutput.trim()
                 
                     def status_report_response = sh(script: """
 						curl --location --request POST "https://api.getport.io/v1/blueprints/$BLUEPRINT_ID/entities?upsert=true&run_id=$RUN_ID&create_missing_related_entities=true" \
