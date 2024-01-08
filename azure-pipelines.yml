@@ -4,13 +4,6 @@ trigger: none
 #   vmImage: 'ubuntu-latest'
 pool: Default
 
-parameters:
-  - name: portRunsUrl
-    type: string
-    default: "https://api.getport.io/v1/actions/runs"
-  - name: workingDirectory
-    type: string
-    default: ""
 
 resources:
   webhooks:
@@ -24,7 +17,7 @@ variables:
   DESCRIPTION: "${{ parameters.PortWebhook.payload.properties.description }}"
   STORAGE_NAME: "${{ parameters.PortWebhook.payload.properties.storage_name }}"
   STORAGE_LOCATION: "${{ parameters.PortWebhook.payload.properties.storage_location }}"
-
+  workingDirectory: ""
 
 steps:
 
@@ -55,7 +48,7 @@ steps:
     ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
     ARM_TENANT_ID: $(sp_tenantId)
   displayName: Initialize configuration
-  workingDirectory: ${{ parameters.workingDirectory }}
+  workingDirectory: ${{ variables.workingDirectory }}
   failOnStderr: true
 
 - script: |
@@ -71,7 +64,7 @@ steps:
     ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
     ARM_TENANT_ID: $(sp_tenantId)
   displayName: 'Plan Terraform changes to Azure'
-  workingDirectory: ${{ parameters.workingDirectory }}
+  workingDirectory: ${{ variables.workingDirectory }}
   condition: succeeded()
 
 - script: |
@@ -82,7 +75,7 @@ steps:
     ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
     ARM_TENANT_ID: $(sp_tenantId)
   displayName: 'Applying Terraform changes to Azure'
-  workingDirectory: ${{ parameters.workingDirectory }}
+  workingDirectory: ${{ variables.workingDirectory }}
   condition: succeeded()
 
 - script: |
@@ -94,7 +87,7 @@ steps:
     ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
     ARM_TENANT_ID: $(sp_tenantId)
   displayName: 'Plan Terraform changes to Port'
-  workingDirectory: ${{ parameters.workingDirectory }}
+  workingDirectory: ${{ variables.workingDirectory }}
   condition: succeeded()
 
 - script: |
