@@ -116,5 +116,4 @@ steps:
           "message": {"run_status":"Completed resource creation at $(completedAt)", "url":"$(terraform_output)" }
         }' \
       "https://api.getport.io/v1/actions/runs/${{ variables.PORT_RUN_ID }}"
-  workingDirectory: ${{ parameters.workingDirectory }}
   displayName: "Update Run Status"
