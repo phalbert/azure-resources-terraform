@@ -57,6 +57,8 @@ steps:
     terraform plan -out=tfazure -var="storage_account_name=$(STORAGE_NAME)" -var="location=$(STORAGE_LOCATION)" -var="port_run_id=$(PORT_RUN_ID)"  -target=azurerm_storage_account.storage_account
     terraform apply -auto-approve -input=false tfazure
   env:
+    TF_VAR_port_client_id: PORT_CLIENT_ID
+    TF_VAR_port_client_secret: PORT_CLIENT_SECRET
     ARM_CLIENT_ID: $(sp_clientId)
     ARM_CLIENT_SECRET: $(sp_clientSecret)
     ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
@@ -67,6 +69,8 @@ steps:
 - script: |
     terraform apply -auto-approve -input=false tfazure
   env:
+    TF_VAR_port_client_id: PORT_CLIENT_ID
+    TF_VAR_port_client_secret: PORT_CLIENT_SECRET
     ARM_CLIENT_ID: $(sp_clientId)
     ARM_CLIENT_SECRET: $(sp_clientSecret)
     ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
@@ -78,6 +82,8 @@ steps:
     terraform plan -out=tfport -var="storage_account_name=$(STORAGE_NAME)" -var="location=$(STORAGE_LOCATION)" -var="port_run_id=$(PORT_RUN_ID)"  -var="location=$(location)"
     terraform apply -auto-approve -input=false tfport
   env:
+    TF_VAR_port_client_id: PORT_CLIENT_ID
+    TF_VAR_port_client_secret: PORT_CLIENT_SECRET
     ARM_CLIENT_ID: $(sp_clientId)
     ARM_CLIENT_SECRET: $(sp_clientSecret)
     ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
@@ -88,6 +94,8 @@ steps:
 - script: |
     terraform apply -auto-approve -input=false tfport
   env:
+    TF_VAR_port_client_id: PORT_CLIENT_ID
+    TF_VAR_port_client_secret: PORT_CLIENT_SECRET
     ARM_CLIENT_ID: $(sp_clientId)
     ARM_CLIENT_SECRET: $(sp_clientSecret)
     ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
