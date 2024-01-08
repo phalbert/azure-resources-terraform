@@ -17,7 +17,6 @@ variables:
   DESCRIPTION: "${{ parameters.PortWebhook.payload.properties.description }}"
   STORAGE_NAME: "${{ parameters.PortWebhook.payload.properties.storage_name }}"
   STORAGE_LOCATION: "${{ parameters.PortWebhook.payload.properties.storage_location }}"
-  workingDirectory: ""
 
 steps:
 
@@ -48,7 +47,6 @@ steps:
     ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
     ARM_TENANT_ID: $(sp_tenantId)
   displayName: Initialize configuration
-  workingDirectory: ${{ variables.workingDirectory }}
   failOnStderr: true
 
 - script: |
@@ -64,7 +62,6 @@ steps:
     ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
     ARM_TENANT_ID: $(sp_tenantId)
   displayName: 'Plan Terraform changes to Azure'
-  workingDirectory: ${{ variables.workingDirectory }}
   condition: succeeded()
 
 - script: |
@@ -75,7 +72,6 @@ steps:
     ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
     ARM_TENANT_ID: $(sp_tenantId)
   displayName: 'Applying Terraform changes to Azure'
-  workingDirectory: ${{ variables.workingDirectory }}
   condition: succeeded()
 
 - script: |
@@ -87,7 +83,6 @@ steps:
     ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
     ARM_TENANT_ID: $(sp_tenantId)
   displayName: 'Plan Terraform changes to Port'
-  workingDirectory: ${{ variables.workingDirectory }}
   condition: succeeded()
 
 - script: |
