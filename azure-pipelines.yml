@@ -1,0 +1,31 @@
+trigger: none
+pr: none
+
+resources:
+  webhooks:
+    - webhook: PortWebhook
+      connection: PortWebhook
+
+# This stage is triggered when the pipeline is invoked by webhook
+stages:
+- stage: WebHookApproval
+  displayName: Webhook Approval
+  jobs:
+  - job: Approval
+    pool: server
+    steps:
+      - task: ManualValidation@0
+        displayName: Validates trigger
+        timeoutInMinutes: 2880
+        inputs:
+          notifyUsers: someone@someprovider.com
+          instructions: 'Please validate the webhook call and resume it.'
+
+- stage: Build
+  displayName: Build a container image
+  jobs:
+  - job: Build_job
+    steps:
+      - bash: |
+          echo "Downloading version: ${{ parameters.PortWebhook.resource.message.version }}"
+          curl -O ${{ parameters.PortWebhook.resource.message.url }}
