@@ -1,31 +1,131 @@
 trigger: none
-pr: none
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+parameters:
+  - name: portRunsUrl
+    type: string
+    default: "https://api.getport.io/v1/actions/runs"
+  - name: workingDirectory
+    type: string
+    default: ""
 
 resources:
   webhooks:
     - webhook: PortWebhook
       connection: PortWebhook
 
-# This stage is triggered when the pipeline is invoked by webhook
-stages:
-- stage: WebHookApproval
-  displayName: Webhook Approval
-  jobs:
-  - job: Approval
-    pool: server
-    steps:
-      - task: ManualValidation@0
-        displayName: Validates trigger
-        timeoutInMinutes: 2880
-        inputs:
-          notifyUsers: someone@someprovider.com
-          instructions: 'Please validate the webhook call and resume it.'
+variables:
+  PORT_RUN_ID: "${{ parameters.port_trigger.context.runId }}"
+  BLUEPRINT_ID: "${{ parameters.port_trigger.context.blueprint }}"
+  SERVICE_NAME: "${{ parameters.port_trigger.payload.properties.service_name }}"
+  DESCRIPTION: "${{ parameters.port_trigger.payload.properties.description }}"
+  STORAGE_NAME: "${{ parameters.port_trigger.payload.properties.storage_name }}"
+  STORAGE_LOCATION: "${{ parameters.port_trigger.payload.properties.storage_location }}"
 
-- stage: Build
-  displayName: Build a container image
-  jobs:
-  - job: Build_job
-    steps:
-      - bash: |
-          echo "Downloading version: ${{ parameters.PortWebhook.resource.message.version }}"
-          curl -O ${{ parameters.PortWebhook.resource.message.url }}
+
+steps:
+
+- checkout: self
+  displayName: 'Checkout repository'
+
+- bash: |
+    startedAt=$(date -u +%Y-%m-%dT%H:%M:%S.000Z)
+    echo "##vso[task.setvariable variable=startedAt]$startedAt"
+
+- script: |
+    sudo apt-get update
+    sudo apt-get install -y jq
+- script: |
+    accessToken=$(curl -X POST \
+          -H 'Content-Type: application/json' \
+          -d '{"clientId": "$(PORT_CLIENT_ID)", "clientSecret": "$(PORT_CLIENT_SECRET)"}' \
+          -s 'https://api.getport.io/v1/auth/access_token' | jq -r '.accessToken')
+    echo "##vso[task.setvariable variable=accessToken;isOutput=true]$accessToken"
+  displayName: Fetch Access Token and Run ID
+  name: getToken
+
+- bash: |
+    terraform init -input=false
+  env:
+    ARM_CLIENT_ID: $(sp_clientId)
+    ARM_CLIENT_SECRET: $(sp_clientSecret)
+    ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
+    ARM_TENANT_ID: $(sp_tenantId)
+  displayName: Initialize configuration
+  workingDirectory: ${{ parameters.workingDirectory }}
+  failOnStderr: true
+
+- script: |
+    terraform validate
+  displayName: 'Terraform Validate'
+
+- script: |
+    terraform plan -out=tfazure -var="storage_account_name=$(STORAGE_NAME)" -var="location=$(STORAGE_LOCATION)" -var="port_run_id=$(PORT_RUN_ID)"  -var="location=$(location)" -target=azurerm_storage_account.storage_account
+    terraform apply -auto-approve -input=false tfazure
+  env:
+    ARM_CLIENT_ID: $(sp_clientId)
+    ARM_CLIENT_SECRET: $(sp_clientSecret)
+    ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
+    ARM_TENANT_ID: $(sp_tenantId)
+  displayName: 'Plan Terraform changes to Azure'
+  workingDirectory: ${{ parameters.workingDirectory }}
+  condition: succeeded()
+
+- script: |
+    terraform apply -auto-approve -input=false tfazure
+  env:
+    ARM_CLIENT_ID: $(sp_clientId)
+    ARM_CLIENT_SECRET: $(sp_clientSecret)
+    ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
+    ARM_TENANT_ID: $(sp_tenantId)
+  displayName: 'Applying Terraform changes to Azure'
+  workingDirectory: ${{ parameters.workingDirectory }}
+  condition: succeeded()
+
+- script: |
+    terraform plan -out=tfport -var="storage_account_name=$(STORAGE_NAME)" -var="location=$(STORAGE_LOCATION)" -var="port_run_id=$(PORT_RUN_ID)"  -var="location=$(location)"
+    terraform apply -auto-approve -input=false tfport
+  env:
+    ARM_CLIENT_ID: $(sp_clientId)
+    ARM_CLIENT_SECRET: $(sp_clientSecret)
+    ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
+    ARM_TENANT_ID: $(sp_tenantId)
+  displayName: 'Plan Terraform changes to Port'
+  workingDirectory: ${{ parameters.workingDirectory }}
+  condition: succeeded()
+
+- script: |
+    terraform apply -auto-approve -input=false tfport
+  env:
+    ARM_CLIENT_ID: $(sp_clientId)
+    ARM_CLIENT_SECRET: $(sp_clientSecret)
+    ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
+    ARM_TENANT_ID: $(sp_tenantId)
+  displayName: 'Applying Terraform changes to Port'
+  condition: succeeded()
+
+- bash: |
+    curl -s -f -H "Content-type: application/json" \
+         -H "Authorization: Bearer $(accessToken)" \
+         -X POST "https://api.getport.io/v1/actions/runs/${{ variables.PORT_RUN_ID }}" \
+         -d '{"message": "Created port entity for blueprint ${{ variables.BLUEPRINT_ID }}"}'
+  displayName: Notify Port
+     
+
+- script: |
+    completedAt=$(date -u +%Y-%m-%dT%H:%M:%S.000Z)
+    terraform_output=$(terraform output endpoint_url | sed 's/"//g')
+    echo ${terraform_output}
+
+    curl -X POST \
+      -H 'Content-Type: application/json' \
+      -H 'Authorization: Bearer $(accessToken)' \
+      -d '{
+          "status": "SUCCESS",
+          "message": {"run_status":"Completed resource creation at $(completedAt)", "url":"$(terraform_output)" }
+        }' \
+      "https://api.getport.io/v1/actions/runs/${{ variables.PORT_RUN_ID }}"
+  workingDirectory: ${{ parameters.workingDirectory }}
+  displayName: "Update Run Status"
