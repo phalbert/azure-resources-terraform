@@ -17,12 +17,12 @@ resources:
       connection: PortWebhook
 
 variables:
-  PORT_RUN_ID: "${{ parameters.port_trigger.context.runId }}"
-  BLUEPRINT_ID: "${{ parameters.port_trigger.context.blueprint }}"
-  SERVICE_NAME: "${{ parameters.port_trigger.payload.properties.service_name }}"
-  DESCRIPTION: "${{ parameters.port_trigger.payload.properties.description }}"
-  STORAGE_NAME: "${{ parameters.port_trigger.payload.properties.storage_name }}"
-  STORAGE_LOCATION: "${{ parameters.port_trigger.payload.properties.storage_location }}"
+  PORT_RUN_ID: "${{ parameters.PortWebhook.context.runId }}"
+  BLUEPRINT_ID: "${{ parameters.PortWebhook.context.blueprint }}"
+  SERVICE_NAME: "${{ parameters.PortWebhook.payload.properties.service_name }}"
+  DESCRIPTION: "${{ parameters.PortWebhook.payload.properties.description }}"
+  STORAGE_NAME: "${{ parameters.PortWebhook.payload.properties.storage_name }}"
+  STORAGE_LOCATION: "${{ parameters.PortWebhook.payload.properties.storage_location }}"
 
 
 steps:
