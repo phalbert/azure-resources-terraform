@@ -54,7 +54,7 @@ steps:
   displayName: 'Terraform Validate'
 
 - script: |
-    terraform plan -out=tfazure -var="storage_account_name=$(STORAGE_NAME)" -var="location=$(STORAGE_LOCATION)" -var="port_run_id=$(PORT_RUN_ID)"  -var="location=$(location)" -target=azurerm_storage_account.storage_account
+    terraform plan -out=tfazure -var="storage_account_name=$(STORAGE_NAME)" -var="location=$(STORAGE_LOCATION)" -var="port_run_id=$(PORT_RUN_ID)"  -target=azurerm_storage_account.storage_account
     terraform apply -auto-approve -input=false tfazure
   env:
     ARM_CLIENT_ID: $(sp_clientId)
