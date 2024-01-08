@@ -25,7 +25,12 @@ steps:
 
 - bash: |
     startedAt=$(date -u +%Y-%m-%dT%H:%M:%S.000Z)
+    echo "Using variable from the variable group: $(azure-service-principal.sp_clientId)"
     echo "##vso[task.setvariable variable=startedAt]$startedAt"
+    echo "${{ ARM_CLIENT_ID }} $(ARM_CLIENT_ID)"
+  env:
+    ARM_CLIENT_ID: $(azure-service-principal.sp_clientId)
+    ARM_CLIENT_SECRET: $(azure-service-principal.sp_clientSecret)
 
 - script: |
     apt-get update
