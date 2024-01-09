@@ -62,10 +62,10 @@ steps:
     TF_VAR_port_client_id: $(PORT_CLIENT_ID)
     TF_VAR_port_client_secret: $(PORT_CLIENT_SECRET)
     TF_VAR_port_run_id: ${PORT_RUN_ID}
-    ARM_CLIENT_ID: $(ARM_CLIENT_ID)
-    ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
-    ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
-    ARM_TENANT_ID: $(ARM_TENANT_ID)
+    TF_VAR_az_client_id: $(ARM_CLIENT_ID)
+    TF_VAR_az_client_secret: $(ARM_CLIENT_SECRET)
+    TF_VAR_az_subscription_id: $(ARM_SUBSCRIPTION_ID)
+    TF_VAR_az_tenant_id: $(ARM_TENANT_ID)
   inputs:
     targetType: 'inline'
     script: |
@@ -76,10 +76,6 @@ steps:
         -out=tfazure-${BUILD_BUILDNUMBER}.tfplan \
         -var="storage_account_name=${STORAGE_NAME}" \
         -var="location=${STORAGE_LOCATION}" \
-        -var="az_subscription_id=${ARM_SUBSCRIPTION_ID}" \
-        -var="az_client_id=${ARM_CLIENT_ID}" \
-        -var="az_client_secret=${ARM_CLIENT_SECRET}" \
-        -var="az_tenant_id=${ARM_TENANT_ID}" \
         -target=azurerm_storage_account.storage_account
 
       terraform apply -auto-approve -input=false tfazure-${BUILD_BUILDNUMBER}.tfplan
