@@ -9,18 +9,6 @@ resources:
 
 variables:
   - group: port-credentials
-  - name: PORT_RUN_ID
-    value: ${{ parameters.PortWebhook.context.runId }}
-  - name: BLUEPRINT_ID
-    value: ${{ parameters.PortWebhook.context.blueprint }}
-  - name: SERVICE_NAME
-    value: ${{ parameters.PortWebhook.payload.properties.service_name }}
-  - name: DESCRIPTION
-    value: ${{ parameters.PortWebhook.payload.properties.description }}
-  - name: STORAGE_NAME
-    value: ${{ parameters.PortWebhook.payload.properties.storage_name }}
-  - name: STORAGE_LOCATION
-    value: ${{ parameters.PortWebhook.payload.properties.storage_location }}
 
 jobs:
 - job: DeployJob
@@ -28,6 +16,8 @@ jobs:
   variables: 
     runId: "${{ parameters.PortWebhook.context.runId }}"
     blueprintId: "${{ parameters.PortWebhook.context.blueprint }}"
+    storageName: "${{ parameters.PortWebhook.payload.properties.storage_name }}"
+    storageLocation: "${{ parameters.PortWebhook.payload.properties.storage_location }}"
     accessToken: ""
 
   steps:
@@ -55,36 +45,36 @@ jobs:
     displayName: 'Fetch Access Token and Run ID'
     name: getToken
 
-  # - bash: |      
-  #     terraform init -input=false
-  #   displayName: 'Initialize configuration'
-  #   failOnStderr: true
+  - bash: |      
+      terraform init -input=false
+    displayName: 'Initialize configuration'
+    failOnStderr: true
 
-  # - script: |
-  #     terraform validate
-  #   displayName: 'Terraform Validate'
+  - script: |
+      terraform validate
+    displayName: 'Terraform Validate'
 
-  # - script: |
-  #     tf_plan_and_apply() {
-  #         terraform plan \
-  #           -input=false \
-  #           -out=tf$1-${BUILD_BUILDNUMBER}.tfplan \
-  #           -var="storage_account_name=${STORAGE_NAME}" \
-  #           -var="location=${STORAGE_LOCATION}" \
-  #           -target=azurerm_storage_account.storage_account
+  - script: |
+      tf_plan_and_apply() {
+          terraform plan \
+            -input=false \
+            -out=tf$1-${BUILD_BUILDNUMBER}.tfplan \
+            -var="storage_account_name=${storageName}" \
+            -var="location=${storageLocation}" \
+            -target=azurerm_storage_account.storage_account
 
-  #         terraform apply -auto-approve -input=false tf$1-${BUILD_BUILDNUMBER}.tfplan
-  #     }
+          terraform apply -auto-approve -input=false tf$1-${BUILD_BUILDNUMBER}.tfplan
+      }
 
-  #     tf_plan_and_apply azure
+      tf_plan_and_apply azure
 
-  #     tf_plan_and_apply port
-  #   displayName: 'Terraform changes to Azure and Port'
-  #   env:
-  #     TF_VAR_resource_group_name: arete-resources
-  #     TF_VAR_port_client_id: $(PORT_CLIENT_ID)
-  #     TF_VAR_port_client_secret: $(PORT_CLIENT_SECRET)
-  #     TF_VAR_port_run_id: $(PORT_RUN_ID)
+      tf_plan_and_apply port
+    displayName: 'Terraform changes to Azure and Port'
+    env:
+      TF_VAR_resource_group_name: arete-resources
+      TF_VAR_port_client_id: $(PORT_CLIENT_ID)
+      TF_VAR_port_client_secret: $(PORT_CLIENT_SECRET)
+      TF_VAR_port_run_id: $(runId)
   
 
   - script: |
