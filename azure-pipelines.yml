@@ -86,32 +86,18 @@ jobs:
   #     TF_VAR_port_client_secret: $(PORT_CLIENT_SECRET)
   #     TF_VAR_port_run_id: $(PORT_RUN_ID)
   
-  - bash: |
-      echo "Access $(accessToken)"
-      echo "Run ID $(runId)"
-      echo "blueprintId ${{ variables.BLUEPRINT_ID }}"
-      echo "blueprintId $(BLUEPRINT_ID)"
-      echo "blueprintId $(blueprintId)"
-      echo "Access $(getToken.accessToken)"
-
-  - bash: |
-      curl -s -f -H "Content-type: application/json" \
-           -H "Authorization: Bearer $(getToken.accessToken)" \
-           -X POST "https://api.getport.io/v1/actions/runs/${{ variables.PORT_RUN_ID }}" \
-           -d '{"message": "Created port entity for blueprint ${{ variables.BLUEPRINT_ID }}"}'
-    displayName: 'Notify Port'
 
   - script: |
       completedAt=$(date -u +%Y-%m-%dT%H:%M:%S.000Z)
       terraform_output=$(terraform output endpoint_url | sed 's/"//g')
       echo ${terraform_output}
 
-      curl -X POST \
+      curl -X PATCH \
         -H 'Content-Type: application/json' \
         -H 'Authorization: Bearer $(getToken.accessToken)' \
         -d '{
             "status": "SUCCESS",
             "message": {"run_status":"Completed resource creation at $(completedAt)", "url":"$(terraform_output)" }
           }' \
-        "https://api.getport.io/v1/actions/runs/${{ variables.PORT_RUN_ID }}"
+        "https://api.getport.io/v1/actions/runs/$(runId)"
     displayName: 'Update Run Status'
