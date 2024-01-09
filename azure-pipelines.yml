@@ -56,7 +56,7 @@ steps:
 - task: Bash@3
   name: 'terraform_plan'
   displayName: 'Plan Terraform changes to Azure'
-  condition: eq(variables.port-credentials)
+  condition: succeeded()
   env:
     TF_VAR_resource_group_name: arete-resources
     TF_VAR_port_client_id: $(PORT_CLIENT_ID)
