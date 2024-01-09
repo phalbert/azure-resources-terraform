@@ -37,9 +37,6 @@ steps:
     echo "Started at $startedAt"
 
 - script: |
-    apt-get update
-    apt-get install -y jq
-- script: |
     accessToken=$(curl -X POST \
           -H 'Content-Type: application/json' \
           -d '{"clientId": "$(PORT_CLIENT_ID)", "clientSecret": "$(PORT_CLIENT_SECRET)"}' \
@@ -49,8 +46,8 @@ steps:
   displayName: Fetch Access Token and Run ID
   name: getToken
 
-- bash: |
-    echo "ARM_CLIENT_ID: ${ARM_CLIENT_ID}"
+- bash: |      
+    echo "accessToken: $(getToken.accessToken)"
     terraform init -input=false
   displayName: Initialize configuration
   failOnStderr: true
