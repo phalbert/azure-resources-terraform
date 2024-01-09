@@ -61,18 +61,17 @@ steps:
 
 - task: Bash@3
   name: 'terraform_plan_azure'
-  displayName: 'Plan Terraform changes to Azure'
+  displayName: 'Terraform changes to Azure'
   condition: succeeded()
   env:
     TF_VAR_resource_group_name: arete-resources
     TF_VAR_port_client_id: $(PORT_CLIENT_ID)
     TF_VAR_port_client_secret: $(PORT_CLIENT_SECRET)
-    TF_VAR_port_run_id: ${PORT_RUN_ID}
+    TF_VAR_port_run_id: $(PORT_RUN_ID)
   inputs:
     targetType: 'inline'
     script: |
       set -euo pipefail
-      echo "${ARM_CLIENT_ID}"
 
       terraform plan \
         -input=false \
@@ -86,18 +85,17 @@ steps:
 
 - task: Bash@3
   name: 'terraform_plan_port'
-  displayName: 'Plan Terraform changes to Port'
+  displayName: 'Terraform changes to Port'
   condition: succeeded()
   env:
     TF_VAR_resource_group_name: arete-resources
     TF_VAR_port_client_id: $(PORT_CLIENT_ID)
     TF_VAR_port_client_secret: $(PORT_CLIENT_SECRET)
-    TF_VAR_port_run_id: ${PORT_RUN_ID}
+    TF_VAR_port_run_id: $(PORT_RUN_ID)
   inputs:
     targetType: 'inline'
     script: |
       set -euo pipefail
-      echo "${ARM_CLIENT_ID}"
 
       terraform plan \
         -input=false \
