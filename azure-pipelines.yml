@@ -60,27 +60,27 @@ jobs:
       terraform validate
     displayName: 'Terraform Validate'
 
-  - script: |
-      tf_plan_and_apply() {
-          terraform plan \
-            -input=false \
-            -out=tf$1-${BUILD_BUILDNUMBER}.tfplan \
-            -var="storage_account_name=${STORAGE_NAME}" \
-            -var="location=${STORAGE_LOCATION}" \
-            -target=azurerm_storage_account.storage_account
+  # - script: |
+  #     tf_plan_and_apply() {
+  #         terraform plan \
+  #           -input=false \
+  #           -out=tf$1-${BUILD_BUILDNUMBER}.tfplan \
+  #           -var="storage_account_name=${STORAGE_NAME}" \
+  #           -var="location=${STORAGE_LOCATION}" \
+  #           -target=azurerm_storage_account.storage_account
 
-          terraform apply -auto-approve -input=false tf$1-${BUILD_BUILDNUMBER}.tfplan
-      }
+  #         terraform apply -auto-approve -input=false tf$1-${BUILD_BUILDNUMBER}.tfplan
+  #     }
 
-      tf_plan_and_apply azure
+  #     tf_plan_and_apply azure
 
-      tf_plan_and_apply port
-    displayName: 'Terraform changes to Azure and Port'
-    env:
-      TF_VAR_resource_group_name: arete-resources
-      TF_VAR_port_client_id: $(PORT_CLIENT_ID)
-      TF_VAR_port_client_secret: $(PORT_CLIENT_SECRET)
-      TF_VAR_port_run_id: $(PORT_RUN_ID)
+  #     tf_plan_and_apply port
+  #   displayName: 'Terraform changes to Azure and Port'
+  #   env:
+  #     TF_VAR_resource_group_name: arete-resources
+  #     TF_VAR_port_client_id: $(PORT_CLIENT_ID)
+  #     TF_VAR_port_client_secret: $(PORT_CLIENT_SECRET)
+  #     TF_VAR_port_run_id: $(PORT_RUN_ID)
 
   - bash: |
       curl -s -f -H "Content-type: application/json" \
