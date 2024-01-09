@@ -25,15 +25,26 @@ variables:
 jobs:
 - job: DeployJob
   displayName: 'Deploy to Azure and Port'
+  variables:
+    TF_VAR_resource_group_name: 'arete-resources'
+    TF_VAR_port_client_id: ${{ variables.PORT_CLIENT_ID }}
+    TF_VAR_port_client_secret: ${{ variables.PORT_CLIENT_SECRET }}
+    TF_VAR_port_run_id: ${{ variables.PORT_RUN_ID }}
+
   steps:
   - checkout: self
     displayName: 'Checkout repository'
-
+  
   - bash: |
       startedAt=$(date -u +%Y-%m-%dT%H:%M:%S.000Z)
       echo "##vso[task.setvariable variable=startedAt]$startedAt"
       echo "Started at $startedAt"
     displayName: 'Set Start Time'
+  
+  - script: |
+      sudo apt-get update
+      sudo apt-get install -y jq
+    displayName: Install jq
 
   - script: |
       accessToken=$(curl -X POST \
