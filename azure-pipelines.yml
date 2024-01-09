@@ -25,11 +25,6 @@ variables:
 jobs:
 - job: DeployJob
   displayName: 'Deploy to Azure and Port'
-  variables:
-    TF_VAR_resource_group_name: 'arete-resources'
-    TF_VAR_port_client_id: ${{ variables.PORT_CLIENT_ID }}
-    TF_VAR_port_client_secret: ${{ variables.PORT_CLIENT_SECRET }}
-    TF_VAR_port_run_id: ${{ variables.PORT_RUN_ID }}
 
   steps:
   - checkout: self
@@ -81,6 +76,11 @@ jobs:
 
       tf_plan_and_apply port
     displayName: 'Terraform changes to Azure and Port'
+    env:
+      TF_VAR_resource_group_name: arete-resources
+      TF_VAR_port_client_id: $(PORT_CLIENT_ID)
+      TF_VAR_port_client_secret: $(PORT_CLIENT_SECRET)
+      TF_VAR_port_run_id: $(PORT_RUN_ID)
 
   - bash: |
       curl -s -f -H "Content-type: application/json" \
