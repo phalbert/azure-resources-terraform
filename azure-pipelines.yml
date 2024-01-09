@@ -78,8 +78,8 @@ steps:
       terraform plan \
         -input=false \
         -out=tfazure-${BUILD_BUILDNUMBER}.tfplan \
-        -var="storage_account_name=${STORAGE_NAME:demo}" \
-        -var="location=${STORAGE_LOCATION:westus2}" \
+        -var="storage_account_name=${STORAGE_NAME}" \
+        -var="location=${STORAGE_LOCATION}" \
         -var="ARM_CLIENT_ID=${ARM_CLIENT_ID}" \
         -var="ARM_CLIENT_SECRET=${ARM_CLIENT_SECRET}" \
         -var="ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID}" \
