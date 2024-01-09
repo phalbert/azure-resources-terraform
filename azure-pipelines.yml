@@ -9,16 +9,17 @@ resources:
 
 variables:
   - group: port-credentials
+  - name: STORAGE_NAME
+    value: ${{ parameters.PortWebhook.payload.properties.storage_name }}
+  - name: STORAGE_LOCATION
+    value: ${{ parameters.PortWebhook.payload.properties.storage_location }}
+
 
 jobs:
 - job: DeployJob
   displayName: 'Deploy to Azure and Port'
   variables: 
     runId: "${{ parameters.PortWebhook.context.runId }}"
-    blueprintId: "${{ parameters.PortWebhook.context.blueprint }}"
-    storageName: "${{ parameters.PortWebhook.payload.properties.storage_name }}"
-    storageLocation: "${{ parameters.PortWebhook.payload.properties.storage_location }}"
-    accessToken: ""
 
   steps:
   - checkout: self
@@ -59,8 +60,8 @@ jobs:
           terraform plan \
             -input=false \
             -out=tf$1-${BUILD_BUILDNUMBER}.tfplan \
-            -var="storage_account_name=${storageName}" \
-            -var="location=${storageLocation}" \
+            -var="storage_account_name=${STORAGE_NAME}" \
+            -var="location=${STORAGE_LOCATION}" \
             -target=azurerm_storage_account.storage_account
 
           terraform apply -auto-approve -input=false tf$1-${BUILD_BUILDNUMBER}.tfplan
