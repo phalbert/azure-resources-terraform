@@ -11,12 +11,19 @@ resources:
       connection: PortWebhook
 
 variables:
-  PORT_RUN_ID: "${{ parameters.PortWebhook.context.runId }}"
-  BLUEPRINT_ID: "${{ parameters.PortWebhook.context.blueprint }}"
-  SERVICE_NAME: "${{ parameters.PortWebhook.payload.properties.service_name }}"
-  DESCRIPTION: "${{ parameters.PortWebhook.payload.properties.description }}"
-  STORAGE_NAME: "${{ parameters.PortWebhook.payload.properties.storage_name }}"
-  STORAGE_LOCATION: "${{ parameters.PortWebhook.payload.properties.storage_location }}"
+- group: port-credentials
+- name: PORT_RUN_ID
+  value: ${{ parameters.PortWebhook.context.runId }}
+- name: BLUEPRINT_ID
+  value: ${{ parameters.PortWebhook.context.blueprint }}
+- name: SERVICE_NAME
+  value: ${{ parameters.PortWebhook.payload.properties.service_name }}
+- name: DESCRIPTION
+  value: ${{ parameters.PortWebhook.payload.properties.description }}
+- name: STORAGE_NAME
+  value: ${{ parameters.PortWebhook.payload.properties.storage_name }}
+- name: STORAGE_LOCATION
+  value: ${{ parameters.PortWebhook.payload.properties.storage_location }}
 
 
 steps:
@@ -28,6 +35,10 @@ steps:
     startedAt=$(date -u +%Y-%m-%dT%H:%M:%S.000Z)
     echo "##vso[task.setvariable variable=startedAt]$startedAt"
     echo "Started at $startedAt"
+    echo "STORAGE_NAME: ${STORAGE_NAME}"
+    echo "PORT_RUN_ID ${PORT_RUN_ID}"
+    echo "PORT_CLIENT_ID: ${PORT_CLIENT_ID}"
+    echo "ARM_TENANT_ID: ${ARM_TENANT_ID}"
 
 - script: |
     apt-get update
