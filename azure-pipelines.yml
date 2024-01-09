@@ -35,10 +35,6 @@ steps:
     startedAt=$(date -u +%Y-%m-%dT%H:%M:%S.000Z)
     echo "##vso[task.setvariable variable=startedAt]$startedAt"
     echo "Started at $startedAt"
-    echo "STORAGE_NAME: ${STORAGE_NAME}"
-    echo "PORT_RUN_ID ${PORT_RUN_ID}"
-    echo "PORT_CLIENT_ID: ${PORT_CLIENT_ID}"
-    echo "ARM_TENANT_ID: ${ARM_TENANT_ID}"
 
 - script: |
     apt-get update
@@ -72,10 +68,6 @@ steps:
     TF_VAR_port_client_id: $(PORT_CLIENT_ID)
     TF_VAR_port_client_secret: $(PORT_CLIENT_SECRET)
     TF_VAR_port_run_id: ${PORT_RUN_ID}
-    ARM_CLIENT_ID: $(ARM_CLIENT_ID)
-    ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
-    ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
-    ARM_TENANT_ID: $(ARM_TENANT_ID)
   inputs:
     targetType: 'inline'
     script: |
@@ -91,42 +83,31 @@ steps:
 
       terraform apply -auto-approve -input=false tfazure-${BUILD_BUILDNUMBER}.tfplan
 
-- script: |
-    terraform apply -auto-approve -input=false tfazure
-  env:
-    TF_VAR_port_client_id: PORT_CLIENT_ID
-    TF_VAR_port_client_secret: PORT_CLIENT_SECRET
-    ARM_CLIENT_ID: $(ARM_CLIENT_ID)
-    ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
-    ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
-    ARM_TENANT_ID: $(ARM_TENANT_ID)
-  displayName: 'Applying Terraform changes to Azure'
-  condition: succeeded()
 
-- script: |
-    terraform plan -out=tfport -var="storage_account_name=$(STORAGE_NAME)" -var="location=$(STORAGE_LOCATION)" -var="port_run_id=$(PORT_RUN_ID)"  -var="location=$(location)"
-    terraform apply -auto-approve -input=false tfport
-  env:
-    TF_VAR_port_client_id: PORT_CLIENT_ID
-    TF_VAR_port_client_secret: PORT_CLIENT_SECRET
-    ARM_CLIENT_ID: $(ARM_CLIENT_ID)
-    ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
-    ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
-    ARM_TENANT_ID: $(ARM_TENANT_ID)
+- task: Bash@3
+  name: 'terraform_plan'
   displayName: 'Plan Terraform changes to Port'
   condition: succeeded()
-
-- script: |
-    terraform apply -auto-approve -input=false tfport
   env:
-    TF_VAR_port_client_id: PORT_CLIENT_ID
-    TF_VAR_port_client_secret: PORT_CLIENT_SECRET
-    ARM_CLIENT_ID: $(ARM_CLIENT_ID)
-    ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
-    ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
-    ARM_TENANT_ID: $(ARM_TENANT_ID)
-  displayName: 'Applying Terraform changes to Port'
-  condition: succeeded()
+    TF_VAR_resource_group_name: arete-resources
+    TF_VAR_port_client_id: $(PORT_CLIENT_ID)
+    TF_VAR_port_client_secret: $(PORT_CLIENT_SECRET)
+    TF_VAR_port_run_id: ${PORT_RUN_ID}
+  inputs:
+    targetType: 'inline'
+    script: |
+      set -euo pipefail
+      echo "${ARM_CLIENT_ID}"
+
+      terraform plan \
+        -input=false \
+        -out=tfport-${BUILD_BUILDNUMBER}.tfplan \
+        -var="storage_account_name=${STORAGE_NAME}" \
+        -var="location=${STORAGE_LOCATION}" \
+        -target=azurerm_storage_account.storage_account
+
+      terraform apply -auto-approve -input=false tfport-${BUILD_BUILDNUMBER}.tfplan
+
 
 - bash: |
     curl -s -f -H "Content-type: application/json" \
