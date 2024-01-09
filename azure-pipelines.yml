@@ -30,8 +30,8 @@ steps:
     echo "##vso[task.setvariable variable=startedAt]$startedAt"
     echo "$(ARM_CLIENT_ID)"
   env:
-    ARM_CLIENT_ID: $(azure-service-principal.sp_clientId)
-    ARM_CLIENT_SECRET: $(azure-service-principal.sp_clientSecret)
+    ARM_CLIENT_ID: $(sp_clientId)
+    ARM_CLIENT_SECRET: $(sp_clientSecret)
 
 - script: |
     apt-get update
@@ -48,10 +48,10 @@ steps:
 - bash: |
     terraform init -input=false
   env:
-    ARM_CLIENT_ID: $(azure-service-principal.sp_clientId)
-    ARM_CLIENT_SECRET: $(azure-service-principal.sp_clientSecret)
-    ARM_SUBSCRIPTION_ID: $(azure-service-principal.sp_subscriptionId)
-    ARM_TENANT_ID: $(azure-service-principal.sp_tenantId)
+    ARM_CLIENT_ID: $(sp_clientId)
+    ARM_CLIENT_SECRET: $(sp_clientSecret)
+    ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
+    ARM_TENANT_ID: $(sp_tenantId)
   displayName: Initialize configuration
   failOnStderr: true
 
@@ -65,10 +65,10 @@ steps:
   env:
     TF_VAR_port_client_id: PORT_CLIENT_ID
     TF_VAR_port_client_secret: PORT_CLIENT_SECRET
-    ARM_CLIENT_ID: $(azure-service-principal.sp_clientId)
-    ARM_CLIENT_SECRET: $(azure-service-principal.sp_clientSecret)
-    ARM_SUBSCRIPTION_ID: $(azure-service-principal.sp_subscriptionId)
-    ARM_TENANT_ID: $(azure-service-principal.sp_tenantId)
+    ARM_CLIENT_ID: $(sp_clientId)
+    ARM_CLIENT_SECRET: $(sp_clientSecret)
+    ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
+    ARM_TENANT_ID: $(sp_tenantId)
   displayName: 'Plan Terraform changes to Azure'
   condition: succeeded()
 
@@ -77,10 +77,10 @@ steps:
   env:
     TF_VAR_port_client_id: PORT_CLIENT_ID
     TF_VAR_port_client_secret: PORT_CLIENT_SECRET
-    ARM_CLIENT_ID: $(azure-service-principal.sp_clientId)
-    ARM_CLIENT_SECRET: $(azure-service-principal.sp_clientSecret)
-    ARM_SUBSCRIPTION_ID: $(azure-service-principal.sp_subscriptionId)
-    ARM_TENANT_ID: $(azure-service-principal.sp_tenantId)
+    ARM_CLIENT_ID: $(sp_clientId)
+    ARM_CLIENT_SECRET: $(sp_clientSecret)
+    ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
+    ARM_TENANT_ID: $(sp_tenantId)
   displayName: 'Applying Terraform changes to Azure'
   condition: succeeded()
 
@@ -90,10 +90,10 @@ steps:
   env:
     TF_VAR_port_client_id: PORT_CLIENT_ID
     TF_VAR_port_client_secret: PORT_CLIENT_SECRET
-    ARM_CLIENT_ID: $(azure-service-principal.sp_clientId)
-    ARM_CLIENT_SECRET: $(azure-service-principal.sp_clientSecret)
-    ARM_SUBSCRIPTION_ID: $(azure-service-principal.sp_subscriptionId)
-    ARM_TENANT_ID: $(azure-service-principal.sp_tenantId)
+    ARM_CLIENT_ID: $(sp_clientId)
+    ARM_CLIENT_SECRET: $(sp_clientSecret)
+    ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
+    ARM_TENANT_ID: $(sp_tenantId)
   displayName: 'Plan Terraform changes to Port'
   condition: succeeded()
 
@@ -102,10 +102,10 @@ steps:
   env:
     TF_VAR_port_client_id: PORT_CLIENT_ID
     TF_VAR_port_client_secret: PORT_CLIENT_SECRET
-    ARM_CLIENT_ID: $(azure-service-principal.sp_clientId)
-    ARM_CLIENT_SECRET: $(azure-service-principal.sp_clientSecret)
-    ARM_SUBSCRIPTION_ID: $(azure-service-principal.sp_subscriptionId)
-    ARM_TENANT_ID: $(azure-service-principal.sp_tenantId)
+    ARM_CLIENT_ID: $(sp_clientId)
+    ARM_CLIENT_SECRET: $(sp_clientSecret)
+    ARM_SUBSCRIPTION_ID: $(sp_subscriptionId)
+    ARM_TENANT_ID: $(sp_tenantId)
   displayName: 'Applying Terraform changes to Port'
   condition: succeeded()
 
