@@ -69,7 +69,6 @@ steps:
     ARM_TENANT_ID: $(ARM_TENANT_ID)
   inputs:
     targetType: 'inline'
-    workingDirectory: $(project_folder)
     script: |
       set -euo pipefail
 
