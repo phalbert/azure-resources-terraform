@@ -60,7 +60,7 @@ steps:
   displayName: 'Terraform Validate'
 
 - task: Bash@3
-  name: 'terraform_plan'
+  name: 'terraform_plan_azure'
   displayName: 'Plan Terraform changes to Azure'
   condition: succeeded()
   env:
@@ -85,7 +85,7 @@ steps:
 
 
 - task: Bash@3
-  name: 'terraform_plan'
+  name: 'terraform_plan_port'
   displayName: 'Plan Terraform changes to Port'
   condition: succeeded()
   env:
