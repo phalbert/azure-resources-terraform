@@ -1,5 +1,3 @@
-# Service Principal Variables
-
 variable "resource_group_name" {
   type        = string
   default     = "myTFResourceGroup"
@@ -31,4 +29,24 @@ variable "port_client_id" {
 variable "port_client_secret" {
   type        = string
   description = "The Port client secret"
+}
+
+variable "az_subscription_id" {
+  type        = string
+  description = "The Azure subscription ID"
+}
+
+variable "az_client_id" {
+  type        = string
+  description = "The Azure client Id"
+}
+
+variable "az_client_secret" {
+  type        = string
+  description = "The Azure client Secret"
+}
+
+variable "az_tenant_id" {
+  type        = string
+  description = "The Azure tenant id"
 }

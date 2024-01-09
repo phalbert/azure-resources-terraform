@@ -15,6 +15,12 @@ terraform {
 }
 
 provider "azurerm" {
+  
+  subscription_id = var.az_subscription_id
+
+  client_id       = var.az_client_id
+  client_secret   = var.az_client_secret
+  tenant_id       = var.az_tenant_id
 
   features {}
 }
@@ -44,7 +50,7 @@ resource "port_entity" "azure_storage_account" {
     string_props = {
       "storage_name"     = var.storage_account_name,
       "storage_location" = var.location,
-      "endpoint"          = azurerm_storage_account.storage_account.primary_web_endpoint
+      "endpoint"         = azurerm_storage_account.storage_account.primary_web_endpoint
     }
   }
 

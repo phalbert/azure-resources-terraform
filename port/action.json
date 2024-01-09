@@ -1,7 +1,7 @@
 {
     "identifier": "create_azure_storage",
     "title": "Create Azure Storage",
-    "icon": "S3",
+    "icon": "Azure",
     "userInputs": {
         "properties": {
             "storage_name": {
@@ -27,7 +27,7 @@
     "invocationMethod": {
         "type": "WEBHOOK",
         "agent": false,
-        "url": "https://improved-morally-caiman.ngrok-free.app/generic-webhook-trigger/invoke?token=11f49c8f3504dbcfacd1c76a731bddc6ca",
+        "url": "https://<jenkins_url>/generic-webhook-trigger/invoke?token=<job_token>",
         "synchronized": false,
         "method": "POST"
     },

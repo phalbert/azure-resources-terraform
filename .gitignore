@@ -36,5 +36,5 @@ terraform.rc
 .env
 .vscode
 
-# ignore my state since this is a guide
+# ignore local state since this is a guide
 .terraform*
