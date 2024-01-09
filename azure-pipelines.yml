@@ -44,7 +44,7 @@ steps:
   name: getToken
 
 - bash: |
-    echo "ARM_TENANT_ID: ${ARM_TENANT_ID}"
+    echo "ARM_TENANT_ID: $(ARM_CLIENT_ID)"
     terraform init -input=false
   displayName: Initialize configuration
   failOnStderr: true
