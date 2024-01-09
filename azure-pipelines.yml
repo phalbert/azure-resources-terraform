@@ -61,6 +61,7 @@ steps:
   displayName: 'Plan Terraform changes to Azure'
   condition: succeeded()
   env:
+    TF_VAR_resource_group_name: arete-resources
     TF_VAR_port_client_id: $(PORT_CLIENT_ID)
     TF_VAR_port_client_secret: $(PORT_CLIENT_SECRET)
     TF_VAR_port_run_id: ${PORT_RUN_ID}
