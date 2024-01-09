@@ -43,6 +43,7 @@ steps:
   name: getToken
 
 - bash: |
+    echo ${ARM_SUBSCRIPTION_ID}
     terraform init -input=false
   env:
     ARM_CLIENT_ID: $(ARM_CLIENT_ID)
