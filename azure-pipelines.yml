@@ -78,11 +78,15 @@ steps:
       terraform plan \
         -input=false \
         -out=tfazure-${BUILD_BUILDNUMBER}.tfplan \
-        -var="storage_account_name=${STORAGE_NAME}" \
-        -var="location=${STORAGE_LOCATION}"
+        -var="storage_account_name=${STORAGE_NAME:demo}" \
+        -var="location=${STORAGE_LOCATION:westus2}" \
+        -var="ARM_CLIENT_ID=${ARM_CLIENT_ID}" \
+        -var="ARM_CLIENT_SECRET=${ARM_CLIENT_SECRET}" \
+        -var="ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID}" \
+        -var="ARM_TENANT_ID=${ARM_TENANT_ID}" \
         -target=azurerm_storage_account.storage_account
 
-      terraform apply -auto-approve -input=false tfazure
+      terraform apply -auto-approve -input=false tfazure-${BUILD_BUILDNUMBER}.tfplan
 
 - script: |
     terraform apply -auto-approve -input=false tfazure
