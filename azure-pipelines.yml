@@ -56,18 +56,32 @@ steps:
     terraform validate
   displayName: 'Terraform Validate'
 
-- script: |
-    terraform plan -out=tfazure -var="storage_account_name=$(STORAGE_NAME)" -var="location=$(STORAGE_LOCATION)" -var="port_run_id=$(PORT_RUN_ID)"  -target=azurerm_storage_account.storage_account
-    terraform apply -auto-approve -input=false tfazure
+- task: Bash@3
+  name: 'terraform_plan'
+  displayName: 'Plan Terraform changes to Azure'
+  condition: succeeded()
   env:
-    TF_VAR_port_client_id: PORT_CLIENT_ID
-    TF_VAR_port_client_secret: PORT_CLIENT_SECRET
+    TF_VAR_port_client_id: $(PORT_CLIENT_ID)
+    TF_VAR_port_client_secret: $(PORT_CLIENT_SECRET)
     ARM_CLIENT_ID: $(ARM_CLIENT_ID)
     ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
     ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
     ARM_TENANT_ID: $(ARM_TENANT_ID)
-  displayName: 'Plan Terraform changes to Azure'
-  condition: succeeded()
+  inputs:
+    targetType: 'inline'
+    workingDirectory: $(project_folder)
+    script: |
+      set -euo pipefail
+
+      terraform plan \
+        -input=false \
+        -out=tfazure-${BUILD_BUILDNUMBER}.tfplan \
+        -var="storage_account_name=${STORAGE_NAME}" \
+        -var="location=$(STORAGE_LOCATION)"
+        -var="port_run_id=$(PORT_RUN_ID)"
+        -target=azurerm_storage_account.storage_account
+
+      terraform apply -auto-approve -input=false tfazure
 
 - script: |
     terraform apply -auto-approve -input=false tfazure
