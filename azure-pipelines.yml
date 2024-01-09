@@ -38,8 +38,8 @@ steps:
           -d '{"clientId": "$(PORT_CLIENT_ID)", "clientSecret": "$(PORT_CLIENT_SECRET)"}' \
           -s 'https://api.getport.io/v1/auth/access_token' | jq -r '.accessToken')
     echo "##vso[task.setvariable variable=accessToken;isOutput=true]$accessToken"
-    echo "$accessToken"
-    echo "${accessToken}"
+    echo "Token: $accessToken"
+    echo "Token: $(accessToken)"
   displayName: Fetch Access Token and Run ID
   name: getToken
 
