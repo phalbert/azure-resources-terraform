@@ -55,14 +55,14 @@ jobs:
     displayName: 'Fetch Access Token and Run ID'
     name: getToken
 
-  - bash: |      
-      terraform init -input=false
-    displayName: 'Initialize configuration'
-    failOnStderr: true
+  # - bash: |      
+  #     terraform init -input=false
+  #   displayName: 'Initialize configuration'
+  #   failOnStderr: true
 
-  - script: |
-      terraform validate
-    displayName: 'Terraform Validate'
+  # - script: |
+  #     terraform validate
+  #   displayName: 'Terraform Validate'
 
   # - script: |
   #     tf_plan_and_apply() {
