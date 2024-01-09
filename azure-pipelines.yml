@@ -26,8 +26,8 @@ jobs:
 - job: DeployJob
   displayName: 'Deploy to Azure and Port'
   variables: 
-    runId: ${{ parameters.PortWebhook.context.runId }}
-    blueprintId: ${{ parameters.PortWebhook.context.blueprint }}
+    runId: "${{ parameters.PortWebhook.context.runId }}"
+    blueprintId: "${{ parameters.PortWebhook.context.blueprint }}"
     accessToken: ""
 
   steps:
@@ -89,7 +89,8 @@ jobs:
   - bash: |
       echo "Access $(accessToken)"
       echo "Run ID $(runId)"
-      echo "Access $(blueprintId)"
+      echo "blueprintId $(blueprintId)"
+      echo "$(getToken.accessToken)"
 
   - bash: |
       curl -s -f -H "Content-type: application/json" \
