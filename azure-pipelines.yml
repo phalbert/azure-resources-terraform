@@ -56,7 +56,7 @@ steps:
 - task: Bash@3
   name: 'terraform_plan'
   displayName: 'Plan Terraform changes to Azure'
-  condition: succeeded()
+  condition: eq(variables.port-credentials)
   env:
     TF_VAR_resource_group_name: arete-resources
     TF_VAR_port_client_id: $(PORT_CLIENT_ID)
@@ -66,14 +66,11 @@ steps:
     ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
     ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
     ARM_TENANT_ID: $(ARM_TENANT_ID)
-    TF_VAR_az_client_id: $(ARM_CLIENT_ID)
-    TF_VAR_az_client_secret: $(ARM_CLIENT_SECRET)
-    TF_VAR_az_subscription_id: $(ARM_SUBSCRIPTION_ID)
-    TF_VAR_az_tenant_id: $(ARM_TENANT_ID)
   inputs:
     targetType: 'inline'
     script: |
       set -euo pipefail
+      echo "${ARM_CLIENT_ID}"
 
       terraform plan \
         -input=false \
