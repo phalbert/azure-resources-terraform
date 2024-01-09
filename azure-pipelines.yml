@@ -13,13 +13,13 @@ variables:
     value: ${{ parameters.PortWebhook.payload.properties.storage_name }}
   - name: STORAGE_LOCATION
     value: ${{ parameters.PortWebhook.payload.properties.storage_location }}
+  - name: PORT_RUN_ID
+    value: ${{ parameters.PortWebhook.context.runId }}
 
 
 jobs:
 - job: DeployJob
   displayName: 'Deploy to Azure and Port'
-  variables: 
-    runId: "${{ parameters.PortWebhook.context.runId }}"
 
   steps:
   - checkout: self
@@ -75,7 +75,7 @@ jobs:
       TF_VAR_resource_group_name: arete-resources
       TF_VAR_port_client_id: $(PORT_CLIENT_ID)
       TF_VAR_port_client_secret: $(PORT_CLIENT_SECRET)
-      TF_VAR_port_run_id: $(runId)
+      TF_VAR_port_run_id: $(PORT_RUN_ID)
   
 
   - script: |
@@ -90,5 +90,5 @@ jobs:
             "status": "SUCCESS",
             "message": {"run_status":"Completed resource creation at $(completedAt)", "url":"$(terraform_output)" }
           }' \
-        "https://api.getport.io/v1/actions/runs/$(runId)"
+        "https://api.getport.io/v1/actions/runs/$(PORT_RUN_ID)"
     displayName: 'Update Run Status'
