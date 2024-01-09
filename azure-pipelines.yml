@@ -89,8 +89,10 @@ jobs:
   - bash: |
       echo "Access $(accessToken)"
       echo "Run ID $(runId)"
+      echo "blueprintId ${{ variables.BLUEPRINT_ID }}"
+      echo "blueprintId $(BLUEPRINT_ID)"
       echo "blueprintId $(blueprintId)"
-      echo "$(getToken.accessToken)"
+      echo "Access $(getToken.accessToken)"
 
   - bash: |
       curl -s -f -H "Content-type: application/json" \
