@@ -95,8 +95,8 @@ stages:
 
 - stage: NotifyAndStatus
   dependsOn:
-    - fetchPortAccessToken
-    - tf_plan_and_apply
+    - Setup
+    - Deployment
   jobs:
   - job: NotifyAndStatusJob
     displayName: 'Notify Port and Update Run Status'
