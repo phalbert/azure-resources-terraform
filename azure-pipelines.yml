@@ -52,7 +52,6 @@ stages:
   jobs:
   - job: DeployJob
     displayName: 'Deploy to Azure and Port'
-    dependsOn: Setup
     pool:
       vmImage: 'ubuntu-latest'
     steps:
@@ -97,7 +96,6 @@ stages:
   jobs:
   - job: NotifyAndStatusJob
     displayName: 'Notify Port and Update Run Status'
-    dependsOn: Deployment
     pool:
       vmImage: 'ubuntu-latest'
     steps:
