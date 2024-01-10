@@ -49,6 +49,8 @@ stages:
       name: fetchPortAccessToken
 
 - stage: Deployment
+  dependsOn:
+    - Setup
   jobs:
   - job: DeployJob
     displayName: 'Deploy to Azure and Port'
