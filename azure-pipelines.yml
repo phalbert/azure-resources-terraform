@@ -19,8 +19,8 @@ variables:
 stages:
 - stage: Setup
   jobs:
-  - job: SetupJob
-    displayName: 'Setup'
+  - job: Checkout
+    displayName: 'Checkout'
     steps:
     - checkout: self
       displayName: 'Checkout repository'
@@ -30,7 +30,9 @@ stages:
         echo "##vso[task.setvariable variable=startedAt]$startedAt"
         echo "Started at $startedAt"
       displayName: 'Set Start Time'
-    
+  - job: GetToken
+    displayName: 'Get Port Token'
+    steps:
     - script: |
         sudo apt-get update
         sudo apt-get install -y jq
@@ -50,8 +52,8 @@ stages:
   dependsOn:
     - Setup
   jobs:
-  - job: DeployJob
-    displayName: 'Deploy to Azure and Port'
+  - job: InitTerraform
+    displayName: 'Initialise Terraform'
     steps:
     - bash: |      
         terraform init -input=false
@@ -62,6 +64,9 @@ stages:
         terraform validate
       displayName: 'Terraform Validate'
 
+  - job: ApplyResources
+    displayName: 'Apply Terraform Resources to Azure and Port'
+    steps:
     - script: |
         tf_plan_and_apply() {
             local plan_type=$1
