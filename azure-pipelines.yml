@@ -97,7 +97,6 @@ stages:
 
 - stage: NotifyAndStatus
   dependsOn:
-    - Setup
     - Deployment
   jobs:
   - job: NotifyAndStatusJob
