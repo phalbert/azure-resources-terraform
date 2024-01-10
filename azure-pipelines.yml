@@ -16,85 +16,102 @@ variables:
   - name: PORT_RUN_ID
     value: ${{ parameters.PortWebhook.context.runId }}
 
+stages:
+- stage: Setup
+  jobs:
+  - job: SetupJob
+    displayName: 'Setup'
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - checkout: self
+      displayName: 'Checkout repository'
+    
+    - bash: |
+        startedAt=$(date -u +%Y-%m-%dT%H:%M:%S.000Z)
+        echo "##vso[task.setvariable variable=startedAt]$startedAt"
+        echo "Started at $startedAt"
+      displayName: 'Set Start Time'
+    
+    - script: |
+        sudo apt-get update
+        sudo apt-get install -y jq
+      displayName: Install jq
 
-jobs:
-- job: DeployJob
-  displayName: 'Deploy to Azure and Port'
+    - script: |
+        accessToken=$(curl -X POST \
+              -H 'Content-Type: application/json' \
+              -d '{"clientId": "$(PORT_CLIENT_ID)", "clientSecret": "$(PORT_CLIENT_SECRET)"}' \
+              -s 'https://api.getport.io/v1/auth/access_token' | jq -r '.accessToken')
+        echo "##vso[task.setvariable variable=accessToken;isOutput=true]$accessToken"
+        echo "Token: $accessToken"
+      displayName: 'Fetch Access Token'
+      name: getToken
 
-  steps:
-  - checkout: self
-    displayName: 'Checkout repository'
-  
-  - bash: |
-      startedAt=$(date -u +%Y-%m-%dT%H:%M:%S.000Z)
-      echo "##vso[task.setvariable variable=startedAt]$startedAt"
-      echo "Started at $startedAt"
-    displayName: 'Set Start Time'
-  
-  - script: |
-      sudo apt-get update
-      sudo apt-get install -y jq
-    displayName: Install jq
+- stage: Deployment
+  jobs:
+  - job: DeployJob
+    displayName: 'Deploy to Azure and Port'
+    dependsOn: Setup
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - bash: |      
+        terraform init -input=false
+      displayName: 'Initialize configuration'
+      failOnStderr: true
 
-  - script: |
-      accessToken=$(curl -X POST \
-            -H 'Content-Type: application/json' \
-            -d '{"clientId": "$(PORT_CLIENT_ID)", "clientSecret": "$(PORT_CLIENT_SECRET)"}' \
-            -s 'https://api.getport.io/v1/auth/access_token' | jq -r '.accessToken')
-      echo "##vso[task.setvariable variable=accessToken;isOutput=true]$accessToken"
-      echo "Token: $accessToken"
-    displayName: 'Fetch Access Token and Run ID'
-    name: getToken
+    - script: |
+        terraform validate
+      displayName: 'Terraform Validate'
 
-  - bash: |      
-      terraform init -input=false
-    displayName: 'Initialize configuration'
-    failOnStderr: true
+    - script: |
+        tf_plan_and_apply() {
+            local plan_type=$1
+            local target_option=""
+            
+            if [ "$plan_type" == "azure" ]; then
+              target_option="-target=azurerm_storage_account.storage_account"
+            fi
 
-  - script: |
-      terraform validate
-    displayName: 'Terraform Validate'
+            terraform plan \
+              -input=false \
+              -out=tf${plan_type}-${BUILD_BUILDNUMBER}.tfplan \
+              -var="storage_account_name=${STORAGE_NAME}" \
+              -var="location=${STORAGE_LOCATION}" \
+              $target_option
 
-  - script: |
-      tf_plan_and_apply() {
-          local plan_type=$1
-          local target_option=""
-          
-          if [ "$plan_type" == "azure" ]; then
-            target_option="-target=azurerm_storage_account.storage_account"
-          fi
+            terraform apply -auto-approve -input=false tf${plan_type}-${BUILD_BUILDNUMBER}.tfplan
+        }
 
-          terraform plan \
-            -input=false \
-            -out=tf${plan_type}-${BUILD_BUILDNUMBER}.tfplan \
-            -var="storage_account_name=${STORAGE_NAME}" \
-            -var="location=${STORAGE_LOCATION}" \
-            $target_option
+        tf_plan_and_apply azure
+        tf_plan_and_apply port
+      displayName: 'Terraform changes to Azure and Port'
+      env:
+        TF_VAR_resource_group_name: arete-resources
+        TF_VAR_port_client_id: $(PORT_CLIENT_ID)
+        TF_VAR_port_client_secret: $(PORT_CLIENT_SECRET)
+        TF_VAR_port_run_id: $(PORT_RUN_ID)
 
-          terraform apply -auto-approve -input=false tf${plan_type}-${BUILD_BUILDNUMBER}.tfplan
-      }
+- stage: NotifyAndStatus
+  jobs:
+  - job: NotifyAndStatusJob
+    displayName: 'Notify Port and Update Run Status'
+    dependsOn: Deployment
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - script: |
+        completedAt=$(date -u +%Y-%m-%dT%H:%M:%S.000Z)
+        terraform_output=$(terraform output endpoint_url | sed 's/"//g')
+        echo ${terraform_output}
 
-      tf_plan_and_apply azure
-      tf_plan_and_apply port
-    displayName: 'Terraform changes to Azure and Port'
-    env:
-      TF_VAR_resource_group_name: arete-resources
-      TF_VAR_port_client_id: $(PORT_CLIENT_ID)
-      TF_VAR_port_client_secret: $(PORT_CLIENT_SECRET)
-      TF_VAR_port_run_id: $(PORT_RUN_ID)
-  
-
-  - script: |
-      completedAt=$(date -u +%Y-%m-%dT%H:%M:%S.000Z)
-      terraform_output=$(terraform output endpoint_url | sed 's/"//g')
-      echo ${terraform_output}
-
-      curl -X PATCH \
-        -H 'Content-Type: application/json' \
-        -H 'Authorization: Bearer $(getToken.accessToken)' \
-        -d '{
-            "status": "SUCCESS",
-            "message": {"run_status":"Completed resource creation at $(completedAt)", "url":"$(terraform_output)" }
-          }' \
-        "https://api.getport.io/v1/actions/runs/$(PORT_RUN_ID)"
-    displayName: 'Update Run Status'
+        curl -X PATCH \
+          -H 'Content-Type: application/json' \
+          -H 'Authorization: Bearer $(getToken.accessToken)' \
+          -d '{
+              "status": "SUCCESS",
+              "message": {"run_status":"Completed resource creation at $(completedAt)", "url":"$(terraform_output)" }
+            }' \
+          "https://api.getport.io/v1/actions/runs/$(PORT_RUN_ID)"
+      displayName: 'Update Run Status'
