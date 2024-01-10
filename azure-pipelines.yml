@@ -81,7 +81,7 @@ jobs:
   - script: |
       completedAt=$(date -u +%Y-%m-%dT%H:%M:%S.000Z)
       terraform_output=$(terraform output endpoint_url | sed 's/"//g')
-      echo ${terraform_output}
+      echo $(terraform_output)
 
       curl -X PATCH \
         -H 'Content-Type: application/json' \
