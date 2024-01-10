@@ -57,18 +57,24 @@ jobs:
 
   - script: |
       tf_plan_and_apply() {
+          local plan_type=$1
+          local target_option=""
+          
+          if [ "$plan_type" == "azure" ]; then
+            target_option="-target=azurerm_storage_account.storage_account"
+          fi
+
           terraform plan \
             -input=false \
-            -out=tf$1-${BUILD_BUILDNUMBER}.tfplan \
+            -out=tf${plan_type}-${BUILD_BUILDNUMBER}.tfplan \
             -var="storage_account_name=${STORAGE_NAME}" \
             -var="location=${STORAGE_LOCATION}" \
-            -target=azurerm_storage_account.storage_account
+            $target_option
 
-          terraform apply -auto-approve -input=false tf$1-${BUILD_BUILDNUMBER}.tfplan
+          terraform apply -auto-approve -input=false tf${plan_type}-${BUILD_BUILDNUMBER}.tfplan
       }
 
       tf_plan_and_apply azure
-
       tf_plan_and_apply port
     displayName: 'Terraform changes to Azure and Port'
     env:
