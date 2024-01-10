@@ -21,8 +21,6 @@ stages:
   jobs:
   - job: SetupJob
     displayName: 'Setup'
-    pool:
-      vmImage: 'ubuntu-latest'
     steps:
     - checkout: self
       displayName: 'Checkout repository'
@@ -54,8 +52,6 @@ stages:
   jobs:
   - job: DeployJob
     displayName: 'Deploy to Azure and Port'
-    pool:
-      vmImage: 'ubuntu-latest'
     steps:
     - bash: |      
         terraform init -input=false
@@ -101,8 +97,6 @@ stages:
   jobs:
   - job: NotifyAndStatusJob
     displayName: 'Notify Port and Update Run Status'
-    pool:
-      vmImage: 'ubuntu-latest'
     steps:
     - script: |
         completedAt=$(date -u +%Y-%m-%dT%H:%M:%S.000Z)
