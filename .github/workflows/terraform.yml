@@ -61,7 +61,8 @@ jobs:
             ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
             ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
             ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-            RESOURCE_GROUP: ${{ secrets.RESOURCE_GROUP }}
+            TF_VAR_port_client_id: ${{ secrets.PORT_CLIENT_ID }}
+            TF_VAR_port_client_secret: ${{ secrets.PORT_CLIENT_SECRET }}
         run: terraform plan -no-color -input=false
         continue-on-error: true
       
@@ -104,6 +105,8 @@ jobs:
             ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
             ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
             ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+            TF_VAR_port_client_id: ${{ secrets.PORT_CLIENT_ID }}
+            TF_VAR_port_client_secret: ${{ secrets.PORT_CLIENT_SECRET }}
         # if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         # run: terraform apply -auto-approve -input=false
         run: terraform apply -auto-approve
