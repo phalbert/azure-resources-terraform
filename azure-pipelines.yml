@@ -16,11 +16,9 @@ variables:
   - name: PORT_RUN_ID
     value: ${{ parameters.PortWebhook.context.runId }}
 
-
 jobs:
 - job: DeployJob
   displayName: 'Deploy to Azure and Port'
-
   steps:
   - checkout: self
     displayName: 'Checkout repository'
@@ -82,7 +80,6 @@ jobs:
       TF_VAR_port_client_id: $(PORT_CLIENT_ID)
       TF_VAR_port_client_secret: $(PORT_CLIENT_SECRET)
       TF_VAR_port_run_id: $(PORT_RUN_ID)
-  
 
   - script: |
       completedAt=$(date -u +%Y-%m-%dT%H:%M:%S.000Z)
