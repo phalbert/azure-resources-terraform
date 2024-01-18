@@ -55,6 +55,7 @@ jobs:
         run: terraform validate
 
       - name: Run Terraform Plan and Apply (Azure)
+        id: plan-azure
         env: 
             ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
             ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
@@ -75,10 +76,11 @@ jobs:
           terraform apply -auto-approve -input=false tfazure-${GITHUB_RUN_NUMBER}.tfplan
 
       - name: Terraform Azure Status
-        if: steps.plan.outcome == 'failure'
+        if: steps.plan-azure.outcome == 'failure'
         run: exit 1
 
       - name: Run Terraform Plan and Apply (Port)
+        id: plan-port
         env: 
             ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
             ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
@@ -98,7 +100,7 @@ jobs:
           terraform apply -auto-approve -input=false tfport-${GITHUB_RUN_NUMBER}.tfplan
 
       - name: Terraform Port Status
-        if: steps.plan.outcome == 'failure'
+        if: steps.plan-port.outcome == 'failure'
         run: exit 1
 
       - name: Create a log message
