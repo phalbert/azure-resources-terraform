@@ -54,20 +54,6 @@ jobs:
         id: validate
         run: terraform validate
 
-      - name: Terraform plan
-        id: plan
-        if: github.event_name == 'pull_request'
-        env: 
-            ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
-            ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
-            ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
-            ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-            TF_VAR_port_client_id: ${{ secrets.PORT_CLIENT_ID }}
-            TF_VAR_port_client_secret: ${{ secrets.PORT_CLIENT_SECRET }}
-            TF_VAR_port_run_id: ${{fromJson(inputs.port_payload).context.runId}}
-        run: terraform plan -no-color -input=false
-        continue-on-error: true
-
       - name: Run Terraform Plan and Apply (Azure)
         env: 
             ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
@@ -81,8 +67,8 @@ jobs:
           terraform plan \
             -input=false \
             -out=tfazure-${GITHUB_RUN_NUMBER}.tfplan \
-            -var="storage_account_name=${storage_name}" \
-            -var="location=${storage_location}" \
+            -var="storage_account_name=${{ github.event.inputs.storage_name }}" \
+            -var="location=${{ github.event.inputs.storage_location }}" \
             -target=azurerm_storage_account.storage_account
 
           terraform apply -auto-approve -input=false tfazure-${GITHUB_RUN_NUMBER}.tfplan
@@ -104,8 +90,8 @@ jobs:
           terraform plan \
             -input=false \
             -out=tfport-${GITHUB_RUN_NUMBER}.tfplan \
-            -var="storage_account_name=${storage_name}" \
-            -var="location=${storage_location}" 
+            -var="storage_account_name=${{ github.event.inputs.storage_name }}" \
+            -var="location=${{ github.event.inputs.storage_location }}"
 
           terraform apply -auto-approve -input=false tfport-${GITHUB_RUN_NUMBER}.tfplan
 
