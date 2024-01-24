@@ -6,7 +6,7 @@
 trigger:
 - main
 
-pool: Default
+pool: mac
 
 variables:
   - group: port-credentials
