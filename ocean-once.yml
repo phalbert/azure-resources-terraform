@@ -14,6 +14,7 @@ variables:
 
 
 steps:
+- task: Docker@2
 - script: |
     echo Add other tasks to build, test, and deploy your project.
     # Set Docker image and run the container
