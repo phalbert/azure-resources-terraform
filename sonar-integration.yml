@@ -1,0 +1,36 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- main
+
+pool: mac
+
+variables:
+  - group: port-credentials
+  - group: sonar-credentials
+
+
+steps:
+- script: |
+    echo Add other tasks to build, test, and deploy your project.
+    # Set Docker image and run the container
+    integration_type="snyk"
+    version="latest"
+
+    image_name="ghcr.io/port-labs/port-ocean-$integration_type:$version"
+
+    docker run -i --rm \
+    -e OCEAN__EVENT_LISTENER='{"type":"ONCE"}' \
+    -e OCEAN__INITIALIZE_PORT_RESOURCES=true \
+    -e OCEAN__INTEGRATION__CONFIG__SONAR_API_TOKEN=${OCEAN__INTEGRATION__CONFIG__SONAR_API_TOKEN} \
+    -e OCEAN__INTEGRATION__CONFIG__SONAR_ORGANIZATION_ID=${OCEAN__INTEGRATION__CONFIG__SONAR_ORGANIZATION_ID} \
+    -e OCEAN__INTEGRATION__CONFIG__SONAR_URL=${OCEAN__INTEGRATION__CONFIG__SONAR_URL} \
+    -e OCEAN__PORT__CLIENT_ID=${OCEAN__PORT__CLIENT_ID} \
+    -e OCEAN__PORT__CLIENT_SECRET=${OCEAN__PORT__CLIENT_SECRET} \
+    $image_name
+
+    exit $?
+  displayName: 'Ingest SonarQube Data into Port'
