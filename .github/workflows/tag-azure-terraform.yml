@@ -40,8 +40,19 @@ jobs:
       
       - name: Terraform init
         id: init
-        run: terraform init
-        # run: terraform init -backend-config="bucket=$BUCKET_TF_STATE"
+        # run: terraform init 
+        env:
+          RESOURCE_GROUP_NAME: arete-resources
+          STORAGE_ACCOUNT_NAME: enrichedstore
+          TF_STATE_CONTAINER: tfstate
+          TF_STATE_KEY: terraform.tfstate
+        run: |
+          terraform init \
+            -backend-config="resource_group_name=$RESOURCE_GROUP_NAME" \
+            -backend-config="storage_account_name=$STORAGE_ACCOUNT_NAME" \
+            -backend-config="container_name=$TF_STATE_CONTAINER" \
+            -backend-config="key=$TF_STATE_KEY" \
+            -input=false
 
       - name: Terraform format
         id: fmt

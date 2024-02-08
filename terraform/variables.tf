@@ -37,3 +37,8 @@ variable "conditional_property" {
   description = "A conditional property"
   default     = ""
 }
+
+variable "config_store" {
+  type        = string
+  default     = "enrichedstore"
+}

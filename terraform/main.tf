@@ -11,6 +11,13 @@ terraform {
     }
   }
 
+  # backend "azurerm" {
+  #   resource_group_name  = "arete-resources"
+  #   storage_account_name = "enrichedstore"
+  #   container_name       = "tfstate"
+  #   key                  = "terraform.tfstate"
+  # }
+
   required_version = ">= 1.1.0"
 }
 

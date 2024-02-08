@@ -44,6 +44,5 @@ jobs:
           inlineScript: |
             az account show
             resource=$(az resource show -g ${RESOURCE_GROUP} -n ${STORAGE_NAME} --resource-type Microsoft.Storage/storageAccounts --query "id" --output tsv)
-            tags=$(echo ${TAGS} | jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|join(" ")')
+            tags=$(echo ${TAGS} | jq -r 'to_entries|map("\(.key)=\(.value|tojson)")|join(" ")')
             az tag create --resource-id $resource --tags $tags
-  
