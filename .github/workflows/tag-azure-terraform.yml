@@ -19,7 +19,7 @@ env:
 
 jobs:
   terraform:
-    name: "Terraform Infrastructure Change Management"
+    name: "Add Tags to Azure Resource"
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -88,29 +88,6 @@ jobs:
 
       - name: Terraform Azure Status
         if: steps.plan-azure.outcome == 'failure'
-        run: exit 1
-
-      - name: Run Terraform Plan and Apply (Port)
-        id: plan-port
-        env: 
-            ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
-            ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
-            ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
-            ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-            TF_VAR_port_client_id: ${{ secrets.PORT_CLIENT_ID }}
-            TF_VAR_port_client_secret: ${{ secrets.PORT_CLIENT_SECRET }}
-            TF_VAR_port_run_id: ${{fromJson(inputs.port_payload).context.runId}}
-            TF_VAR_storage_account_name: ${{fromJson(inputs.port_payload).context.entity}}
-            TF_VAR_resource_tags: ${{ github.event.inputs.tags }}
-        run: |
-          terraform plan \
-            -input=false \
-            -out=tfport-${GITHUB_RUN_NUMBER}.tfplan
-
-          terraform apply -auto-approve -input=false tfport-${GITHUB_RUN_NUMBER}.tfplan
-
-      - name: Terraform Port Status
-        if: steps.plan-port.outcome == 'failure'
         run: exit 1
 
       - name: Create a log message
