@@ -19,6 +19,7 @@ variable "storage_account_name" {
 variable "port_run_id" {
   type        = string
   description = "The runID of the action run that created the entity"
+  default     = "value"
 }
 
 variable "port_client_id" {
@@ -31,3 +32,8 @@ variable "port_client_secret" {
   description = "The Port client secret"
 }
 
+variable "conditional_property" {
+  type        = string
+  description = "A conditional property"
+  default     = ""
+}
