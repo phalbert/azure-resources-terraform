@@ -62,11 +62,11 @@ jobs:
             TF_VAR_port_client_secret: ${{ secrets.PORT_CLIENT_SECRET }}
             TF_VAR_port_run_id: ${{fromJson(inputs.port_payload).context.runId}}
             TF_VAR_storage_account_name: ${{fromJson(inputs.port_payload).context.entity}}
+            TF_VAR_common_tags: ${{ github.event.inputs.tags }}
         run: |
           terraform plan \
             -input=false \
             -out=tfazure-${GITHUB_RUN_NUMBER}.tfplan \
-            -var='common_tags=${{ github.event.inputs.tags }}' \
             -target=azurerm_storage_account.storage_account
 
           terraform apply -auto-approve -input=false tfazure-${GITHUB_RUN_NUMBER}.tfplan
@@ -86,11 +86,11 @@ jobs:
             TF_VAR_port_client_secret: ${{ secrets.PORT_CLIENT_SECRET }}
             TF_VAR_port_run_id: ${{fromJson(inputs.port_payload).context.runId}}
             TF_VAR_storage_account_name: ${{fromJson(inputs.port_payload).context.entity}}
+            TF_VAR_common_tags: ${{ github.event.inputs.tags }}
         run: |
           terraform plan \
             -input=false \
-            -out=tfport-${GITHUB_RUN_NUMBER}.tfplan \
-            -var='common_tags=${{ github.event.inputs.tags }}'
+            -out=tfport-${GITHUB_RUN_NUMBER}.tfplan
 
           terraform apply -auto-approve -input=false tfport-${GITHUB_RUN_NUMBER}.tfplan
 
