@@ -13,7 +13,7 @@ variable "location" {
 variable "storage_account_name" {
   type        = string
   description = "Storage Account name in Azure"
-  default     = "alituacontinua"
+  default     = "fortizo"
 }
 
 variable "port_run_id" {

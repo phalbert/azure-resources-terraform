@@ -38,6 +38,7 @@ resource "azurerm_storage_account" "storage_account" {
   tags                     = var.resource_tags
 }
 
+
 resource "port_entity" "azure_storage_account" {
   count      = length(azurerm_storage_account.storage_account) > 0 ? 1 : 0
   identifier = var.storage_account_name
@@ -49,9 +50,6 @@ resource "port_entity" "azure_storage_account" {
       "storage_name"     = var.storage_account_name,
       "storage_location" = var.location,
       "endpoint"         = azurerm_storage_account.storage_account.primary_web_endpoint
-    }
-    object_props = {
-      "tags" = var.resource_tags
     }
   }
 
