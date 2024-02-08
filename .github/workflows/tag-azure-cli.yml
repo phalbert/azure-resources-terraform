@@ -1,0 +1,40 @@
+name: "Tag Azure Resource CLI"
+
+on: [push]
+# on: 
+#   workflow_dispatch:
+#     inputs:
+#       tags:
+#         required: true
+#         type: string
+#       port_payload:
+#         required: true
+#         description:
+#             Port's payload, including details for who triggered the action and
+#             general context (blueprint, run id, etc...)
+#         type: string
+
+# create a GitHub Action secret AZURE_CREDENTIALS with the value like below: (Refer to Using secrets in GitHub Actions.)
+# AZURE_CREDENTIALS = {
+#     "clientSecret":  "******",
+#     "subscriptionId":  "******",
+#     "tenantId":  "******",
+#     "clientId":  "******"
+# }
+
+jobs:
+
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    
+    - uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    
+    - name: Azure CLI script
+      uses: azure/CLI@v1
+      with:
+        azcliversion: latest
+        inlineScript: |
+          az account show
