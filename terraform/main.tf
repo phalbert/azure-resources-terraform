@@ -31,7 +31,7 @@ provider "port" {
   secret    = var.port_client_secret # or set the env var PORT_CLIENT_SECRET
 }
 
-variable "common_tags" {
+variable "resource_tags" {
   type = map(string)
   default = {
     Environment = "Production"
@@ -47,7 +47,7 @@ resource "azurerm_storage_account" "storage_account" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
   account_kind             = "StorageV2"
-  tags                     = var.common_tags
+  tags                     = var.resource_tags
 }
 
 resource "port_entity" "azure_storage_account" {

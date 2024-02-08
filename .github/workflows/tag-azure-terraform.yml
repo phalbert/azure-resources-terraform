@@ -48,10 +48,7 @@ jobs:
           TF_STATE_KEY: terraform.tfstate
         run: |
           terraform init \
-            -backend-config="resource_group_name=$RESOURCE_GROUP_NAME" \
-            -backend-config="storage_account_name=$STORAGE_ACCOUNT_NAME" \
-            -backend-config="container_name=$TF_STATE_CONTAINER" \
-            -backend-config="key=$TF_STATE_KEY" \
+            -backend-config=${{ secrets.AZURE_CREDENTIALS }} \
             -input=false
 
       - name: Terraform format
@@ -97,7 +94,7 @@ jobs:
             TF_VAR_port_client_secret: ${{ secrets.PORT_CLIENT_SECRET }}
             TF_VAR_port_run_id: ${{fromJson(inputs.port_payload).context.runId}}
             TF_VAR_storage_account_name: ${{fromJson(inputs.port_payload).context.entity}}
-            TF_VAR_common_tags: ${{ github.event.inputs.tags }}
+            TF_VAR_resource_tags: ${{ github.event.inputs.tags }}
         run: |
           terraform plan \
             -input=false \
