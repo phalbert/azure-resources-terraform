@@ -37,3 +37,11 @@ variable "conditional_property" {
   description = "A conditional property"
   default     = ""
 }
+
+variable "resource_tags" {
+  type = any
+  default = {
+    Environment = "Production"
+    Department  = "Finance"
+  }
+}

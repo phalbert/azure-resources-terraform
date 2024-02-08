@@ -11,12 +11,7 @@ terraform {
     }
   }
 
-  backend "azurerm" {
-    resource_group_name  = "arete-resources"
-    storage_account_name = "enrichedstore"
-    container_name       = "tfstate"
-    key                  = "terraform.tfstate"
-  }
+  backend "azurerm" {}
 
   required_version = ">= 1.1.0"
 }
@@ -31,13 +26,6 @@ provider "port" {
   secret    = var.port_client_secret # or set the env var PORT_CLIENT_SECRET
 }
 
-variable "resource_tags" {
-  type = map(string)
-  default = {
-    Environment = "Production"
-    Department  = "Finance"
-  }
-}
 
 resource "azurerm_storage_account" "storage_account" {
   name                = var.storage_account_name
@@ -55,12 +43,15 @@ resource "port_entity" "azure_storage_account" {
   identifier = var.storage_account_name
   title      = var.storage_account_name
   blueprint  = "azureStorage"
-  //run_id     = var.port_run_id
+  run_id     = var.port_run_id
   properties = {
     string_props = {
       "storage_name"     = var.storage_account_name,
       "storage_location" = var.location,
       "endpoint"         = azurerm_storage_account.storage_account.primary_web_endpoint
+    }
+    object_props = {
+      "tags" = var.resource_tags
     }
   }
 
