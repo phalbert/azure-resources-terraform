@@ -66,7 +66,7 @@ jobs:
           terraform plan \
             -input=false \
             -out=tfazure-${GITHUB_RUN_NUMBER}.tfplan \
-            -var="common_tags=${{ github.event.inputs.tags }}" \
+            -var='common_tags=${{ github.event.inputs.tags }}' \
             -target=azurerm_storage_account.storage_account
 
           terraform apply -auto-approve -input=false tfazure-${GITHUB_RUN_NUMBER}.tfplan
@@ -90,7 +90,7 @@ jobs:
           terraform plan \
             -input=false \
             -out=tfport-${GITHUB_RUN_NUMBER}.tfplan \
-            -var="common_tags=${{ github.event.inputs.tags }}"
+            -var='common_tags=${{ github.event.inputs.tags }}'
 
           terraform apply -auto-approve -input=false tfport-${GITHUB_RUN_NUMBER}.tfplan
 
