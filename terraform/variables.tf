@@ -1,6 +1,6 @@
 variable "resource_group_name" {
   type        = string
-  default     = "myTFResourceGroup"
+  default     = "arete-resources"
   description = "RG name in Azure"
 }
 
@@ -13,7 +13,7 @@ variable "location" {
 variable "storage_account_name" {
   type        = string
   description = "Storage Account name in Azure"
-  default     = "demoaccstore"
+  default     = "alituacontinua"
 }
 
 variable "port_run_id" {
