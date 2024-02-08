@@ -81,8 +81,7 @@ jobs:
         run: |
           terraform plan \
             -input=false \
-            -out=tfazure-${GITHUB_RUN_NUMBER}.tfplan \
-            -target=azurerm_storage_account.storage_account
+            -out=tfazure-${GITHUB_RUN_NUMBER}.tfplan
 
           terraform apply -auto-approve -input=false tfazure-${GITHUB_RUN_NUMBER}.tfplan
 
