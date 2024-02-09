@@ -16,24 +16,34 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Extract PR Information
+        id: extract_info
+        run: |
+          url="${{ fromJson(inputs.port_payload).entity.properties.link }}"
+          echo "::set-output name=pr_info::$url"
 
       - name: Determine Action
         run: |
           action="${{ github.event.inputs.action }}"
-          pr_number=$(echo "${{ fromJson(inputs.port_payload).context.entity }}")
+          pr_info="${{ steps.extract_info.outputs.pr_info }}"
 
-          if [ "$action" == "close" ]; then
-            curl -X PATCH \
-              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-              -H "Accept: application/vnd.github.v3+json" \
-              "https://api.github.com/repos/${{ github.repository }}/pulls/${pr_number}" \
-              -d '{"state": "closed"}'
-          elif [ "$action" == "merge" ]; then
-            curl -X PUT \
-              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-              -H "Accept: application/vnd.github.v3+json" \
-              "https://api.github.com/repos/${{ github.repository }}/pulls/${pr_number}/merge"
+          if [ -n "$pr_info" ]; then
+            if [ "$action" == "close" ]; then
+              curl -X PATCH \
+                -H "Authorization: token ${{ secrets.GH_TOKEN }}" \
+                -H "Accept: application/vnd.github.v3+json" \
+                "$pr_info" \
+                -d '{"state": "closed"}'
+            elif [ "$action" == "merge" ]; then
+              curl -X PUT \
+                -H "Authorization: token ${{ secrets.GH_TOKEN }}" \
+                -H "Accept: application/vnd.github.v3+json" \
+                "$pr_info/merge"
+            else
+              echo "Invalid action specified. Expected 'close' or 'merge'."
+              exit 1
+            fi
           else
-            echo "Invalid action specified. Expected 'close' or 'merge'."
+            echo "Failed to extract PR information from the URL."
             exit 1
           fi
