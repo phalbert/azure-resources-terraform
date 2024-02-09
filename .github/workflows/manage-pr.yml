@@ -16,13 +16,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
       - name: Extract Repository and PR Number
         id: extract_info
+        env:
+          repo_url: ${{ fromJson(inputs.port_payload).entity.properties.link }}
         run: |
-          url="${{ fromJson(inputs.port_payload).entity.properties.link }}"
-          IFS='/' read -ra parts <<< "$url"
-          repository="${parts[3]}/${parts[4]}"
-          pr_number="${parts[6]}"
+          echo ${repo_url}
+          url=$(echo "${repo_url}" | jq -r '.')
+          repository=$(echo "$url" | jq -r '. | split("/") | .[3] + "/" + .[4]')
+          pr_number=$(echo "$url" | jq -r '. | split("/") | .[6]')
           echo "REPOSITORY=$repository" >> $GITHUB_ENV
           echo "PR_NUMBER=$pr_number" >> $GITHUB_ENV
 
