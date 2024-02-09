@@ -19,7 +19,7 @@ variable "storage_account_name" {
 variable "port_run_id" {
   type        = string
   description = "The runID of the action run that created the entity"
-  default     = "value"
+  default     = ""
 }
 
 variable "port_client_id" {

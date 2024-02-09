@@ -39,3 +39,5 @@ terraform.rc
 # ignore local state since this is a guide
 .terraform*
 .venv
+
+test*
