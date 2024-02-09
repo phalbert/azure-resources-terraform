@@ -16,34 +16,39 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Extract PR Information
+      - name: Extract Repository and PR Number
         id: extract_info
         run: |
           url="${{ fromJson(inputs.port_payload).entity.properties.link }}"
-          echo "::set-output name=pr_info::$url"
+          IFS='/' read -ra parts <<< "$url"
+          repository="${parts[3]}/${parts[4]}"
+          pr_number="${parts[6]}"
+          echo "REPOSITORY=$repository" >> $GITHUB_ENV
+          echo "PR_NUMBER=$pr_number" >> $GITHUB_ENV
 
       - name: Determine Action
         run: |
           action="${{ github.event.inputs.action }}"
-          pr_info="${{ steps.extract_info.outputs.pr_info }}"
+          repository="${{ env.REPOSITORY }}"
+          pr_number="${{ env.PR_NUMBER }}"
 
-          if [ -n "$pr_info" ]; then
+          if [ -n "$repository" ] && [ -n "$pr_number" ]; then
             if [ "$action" == "close" ]; then
               curl -X PATCH \
                 -H "Authorization: token ${{ secrets.GH_TOKEN }}" \
                 -H "Accept: application/vnd.github.v3+json" \
-                "$pr_info" \
+                "https://api.github.com/repos/$repository/pulls/$pr_number" \
                 -d '{"state": "closed"}'
             elif [ "$action" == "merge" ]; then
               curl -X PUT \
                 -H "Authorization: token ${{ secrets.GH_TOKEN }}" \
                 -H "Accept: application/vnd.github.v3+json" \
-                "$pr_info/merge"
+                "https://api.github.com/repos/$repository/pulls/$pr_number/merge"
             else
               echo "Invalid action specified. Expected 'close' or 'merge'."
               exit 1
             fi
           else
-            echo "Failed to extract PR information from the URL."
+            echo "Failed to extract repository and PR number from the URL."
             exit 1
           fi
