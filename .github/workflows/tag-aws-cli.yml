@@ -8,9 +8,7 @@ on:
         type: string
       port_payload:
         required: true
-        description:
-            Port's payload, including details for who triggered the action and
-            general context (blueprint, run id, etc...)
+        description: "Port's payload, including details for who triggered the action and general context (blueprint, run id, etc...)"
         type: string
 
 jobs:
@@ -26,11 +24,18 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Install jq
+        run: sudo apt-get install jq
+
       - name: Add Tags to S3 Bucket
         env: 
           BUCKET_NAME: ${{ fromJson(inputs.port_payload).context.entity }}
-          TAGS: ${{ github.event.inputs.tags }}
+          TAGS_JSON: ${{ github.event.inputs.tags }}
         run: |
+          # Extract key-value pairs from the JSON object
+          TAGS=$(echo "${TAGS_JSON}" | jq -r 'to_entries | map("\(.key)=\(.value)") | join(" ")')
+
           aws s3api put-bucket-tagging \
             --bucket ${BUCKET_NAME} \
-            --tagging 'TagSet=[TAGS]'          
+            --tagging "TagSet=${TAGS}"

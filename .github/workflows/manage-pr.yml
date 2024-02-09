@@ -1,0 +1,41 @@
+name: Manage Pull Request
+
+on: 
+  workflow_dispatch:
+    inputs:
+      action:
+        required: true
+        type: string
+      port_payload:
+        required: true
+        description: "Port's payload, including details for who triggered the action and general context (blueprint, run id, etc...)"
+        type: string
+
+jobs:
+  manage-pr:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Determine Action
+        run: |
+          action="${{ github.event.inputs.action }}"
+          pr_number=$(echo "${{ fromJson(inputs.port_payload).context.entity }}")
+
+          if [ "$action" == "close" ]; then
+            curl -X PATCH \
+              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Accept: application/vnd.github.v3+json" \
+              "https://api.github.com/repos/${{ github.repository }}/pulls/${pr_number}" \
+              -d '{"state": "closed"}'
+          elif [ "$action" == "merge" ]; then
+            curl -X PUT \
+              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Accept: application/vnd.github.v3+json" \
+              "https://api.github.com/repos/${{ github.repository }}/pulls/${pr_number}/merge"
+          else
+            echo "Invalid action specified. Expected 'close' or 'merge'."
+            exit 1
+          fi
