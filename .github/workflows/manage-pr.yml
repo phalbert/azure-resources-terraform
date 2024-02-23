@@ -64,10 +64,10 @@ jobs:
 
           echo "HTTP Status: $result"
 
-          if [$result -eq 200]; then
+          if [ $result -eq 200 ]; then
             result_message = "PR $action completed successfully"
           else
-            result_message = "PR $action failed."
+            result_message = "PR $action failed. HTTP Status: $result"
 
           echo "GITHUB_ACTION_RESULT=$result" >> $GITHUB_ENV
           echo "GITHUB_ACTION_TYPE=$action" >> $GITHUB_ENV
