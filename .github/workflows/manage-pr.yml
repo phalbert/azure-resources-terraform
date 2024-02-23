@@ -1,9 +1,9 @@
 name: Manage Pull Request
 
-on: 
+on:
   workflow_dispatch:
     inputs:
-      action:
+      action: # 'close' or 'action' -- make this a select in Port UI
         required: true
         type: string
       port_payload:
@@ -32,18 +32,22 @@ jobs:
           repo_info="${{ env.REPO_INFO }}"
           pr_number="${{ env.PR_NUMBER }}"
 
+          result=""
+
           if [ -n "$repo_info" ] && [ -n "$pr_number" ]; then
             if [ "$action" == "close" ]; then
-              curl -X PATCH \
+              result=$(curl -s -o /dev/null -w "%{http_code}" \
+                -X PATCH \
                 -H "Authorization: token ${{ secrets.GH_TOKEN }}" \
                 -H "Accept: application/vnd.github.v3+json" \
                 "https://api.github.com/repos/$repo_info/pulls/$pr_number" \
-                -d '{"state": "closed"}'
+                -d '{"state": "closed"}')
             elif [ "$action" == "merge" ]; then
-              curl -X PUT \
+              result=$(curl -s -o /dev/null -w "%{http_code}" \
+                -X PUT \
                 -H "Authorization: token ${{ secrets.GH_TOKEN }}" \
                 -H "Accept: application/vnd.github.v3+json" \
-                "https://api.github.com/repos/$repo_info/pulls/$pr_number/merge"
+                "https://api.github.com/repos/$repo_info/pulls/$pr_number/merge")
             else
               echo "Invalid action specified. Expected 'close' or 'merge'."
               exit 1
@@ -52,3 +56,16 @@ jobs:
             echo "Failed to extract repository and PR number from the URL."
             exit 1
           fi
+
+          echo "GITHUB_ACTION_RESULT=$result" >> $GITHUB_ENV
+          echo "GITHUB_ACTION_TYPE=$action" >> $GITHUB_ENV
+
+      - name: Notify Port
+        uses: port-labs/port-github-action@v1
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          operation: PATCH_RUN
+          runId: ${{ fromJson(inputs.port_payload).context.runId }}
+          logMessage: |
+            GitHub Action result for ${{ env.GITHUB_ACTION_TYPE }} action on PR ${{ env.PR_NUMBER }}: ${{ env.GITHUB_ACTION_RESULT }}
