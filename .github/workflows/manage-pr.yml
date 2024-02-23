@@ -62,13 +62,15 @@ jobs:
             exit 1
           fi
 
-          echo "HTTP Status: $result"
+          echo "HTTP Status for $action: $result"
 
           if [ $result -eq 200 ]; then
             result_message="PR $action completed successfully"
           else
             result_message="PR $action failed. HTTP Status: $result"
           fi
+
+          echo "Result for $action: $result_message"
 
           echo "GITHUB_ACTION_RESULT=$result" >> $GITHUB_ENV
           echo "GITHUB_ACTION_TYPE=$action" >> $GITHUB_ENV
