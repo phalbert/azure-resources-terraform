@@ -1,0 +1,58 @@
+name: Manage Pull Request
+
+on:
+  workflow_dispatch:
+    inputs:
+      action: # 'close' or 'action' -- make this a select in Port UI
+        required: true
+        type: string
+      port_payload:
+        required: true
+        description: "Port's payload, including details for who triggered the action and general context (blueprint, run id, etc...)"
+        type: string
+
+jobs:
+  manage-pr:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Extract Repository and PR Number
+        id: extract_info
+        run: |
+          link="${{ fromJson(inputs.port_payload).payload.entity.properties.link }}"
+          repo_info=$(echo "$link" | sed 's|https://github.com/||' | awk -F'/' '{print $1 "/" $2}')
+          pr_number=$(echo "$link" | awk -F'/' '{print $NF}')
+
+          echo "REPO_INFO=$repo_info" >> $GITHUB_ENV
+          echo "PR_NUMBER=$pr_number" >> $GITHUB_ENV
+
+      - name: Get GitHub Pull Request Reviewers
+        uses: LiamPerson/get-reviews-action@v1.1.2
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ env.REPO_INFO }}
+          PULL_REQUEST_ID: ${{ env.PR_NUMBER }}
+
+      - name: Post to a Slack channel
+        id: slack
+        uses: slackapi/slack-github-action@v1.25.0
+        with:
+          # Slack channel id, channel name, or user id to post message.
+          # See also: https://api.slack.com/methods/chat.postMessage#channels
+          # You can pass in multiple channels to post to by providing a comma-delimited list of channel IDs.
+          channel-id: "CHANNEL_ID,ANOTHER_CHANNEL_ID"
+          # For posting a simple plain text message
+          slack-message: "GitHub build result: ${{ job.status }}\n${{ github.event.pull_request.html_url || github.event.head_commit.url }}"
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+
+      - name: Notify Port
+        uses: port-labs/port-github-action@v1
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          operation: PATCH_RUN
+          baseUrl: https://api.getport.io
+          runId: ${{ fromJson(inputs.port_payload).context.runId }}
+          logMessage: |
+            GitHub Action result for ${{ env.GITHUB_ACTION_TYPE }} action on PR ${{ env.PR_NUMBER }}: ${{ env.GITHUB_ACTION_RESULT_MESSAGE }}
