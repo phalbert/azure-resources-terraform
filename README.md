@@ -1,3 +1,6 @@
+![Alt](https://repobeats.axiom.co/api/embed/53271d9c7340f9fa363e074318f66b8e773541b7.svg "Repobeats analytics image")
+
+
 # Jenkins pipeline - Create resource in Azure Cloud with Terraform
 
 This example demonstrates how to deploy a storage account in Azure using Terraform templates via Port Actions.
@@ -47,3 +50,5 @@ Follow these steps to get started:
     NB: The pipeline includes a post run task of `cleanWs` whose `deleteDirs` parameter means that all generated files and temporary build artifacts will be deleted. Therefore, be sure to either change it or add backend for your terraform state on initialisation.
 
 6. Trigger the action from the [self-service](https://app.getport.io/self-serve) tab of your Port application.
+
+
