@@ -49,6 +49,13 @@ jobs:
                 -H "Authorization: token ${{ secrets.GH_TOKEN }}" \
                 -H "Accept: application/vnd.github.v3+json" \
                 "https://api.github.com/repos/$repo_info/pulls/$pr_number/merge")
+            elif [ "$action" == "approve" ]; then
+              result=$(curl -s -o /dev/null -w "%{http_code}" \
+                -X PATCH \
+                -H "Authorization: token ${{ secrets.GH_TOKEN }}" \
+                -H "Accept: application/vnd.github.v3+json" \
+                "https://api.github.com/repos/$repo_info/pulls/$pr_number/reviews" \
+                -d '{"event": "APPROVE"}')
             else
               result="400" # Invalid action code
               result_message="Invalid action specified. Expected 'close' or 'merge'."
