@@ -43,3 +43,4 @@ terraform.rc
 test*
 
 templates
+template-assets

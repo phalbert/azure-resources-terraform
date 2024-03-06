@@ -1,4 +1,4 @@
-name: Manage Pull Request
+name: Create and Push Image to ECR
 
 on:
   workflow_dispatch:
