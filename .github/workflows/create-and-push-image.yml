@@ -23,10 +23,20 @@ jobs:
       TRIGGERED_BY: ${{ fromJson(inputs.port_payload).trigger.by.user.email || github.actor }}
 
     steps:
+    - name: Extract repository owner and name
+      run: |
+        repo_owner=$(echo "${REPO_URL}" | awk -F/ '{print $4}')
+        repo_name=$(echo "${REPO_URL}" | awk -F/ '{print $5}')
+
+        echo "REPO_INFO=$repo_owner" >> $GITHUB_ENV
+        echo "PR_NUMBER=$repo_name" >> $GITHUB_ENV
+      shell: bash
+  
     - name: Checkout repository
       uses: actions/checkout@v2
       with:
-        repository: ${REPO_URL}
+        repository: ${{ env.REPO_OWNER }}/${{ env.REPO_NAME }}
+  
 
     - name: Login to AWS ECR
       id: login-ecr
