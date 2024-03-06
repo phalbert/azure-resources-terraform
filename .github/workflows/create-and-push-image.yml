@@ -36,6 +36,12 @@ jobs:
       uses: actions/checkout@v2
       with:
         repository: ${{ env.REPO_OWNER }}/${{ env.REPO_NAME }}
+
+    - name: Get short commit ID
+      id: get-commit-id
+      run: |
+        echo "COMMIT_SHORT=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+      shell: bash
     
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v4
@@ -53,8 +59,6 @@ jobs:
         ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
         ECR_REPOSITORY: ${{ inputs.image_repo }}
       run: |
-        COMMIT_SHORT=$(git rev-parse --short ${{ github.sha }})
-
         # Build and push image with short commit ID and triggered by as tags
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_SHORT .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_SHORT
