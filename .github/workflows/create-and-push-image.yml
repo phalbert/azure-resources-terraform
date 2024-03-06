@@ -28,7 +28,7 @@ jobs:
         repo_owner=$(echo "${REPO_URL}" | awk -F/ '{print $4}')
         repo_name=$(echo "${REPO_URL}" | awk -F/ '{print $5}')
 
-        echo "REPO_INFO=$repo_owner" >> $GITHUB_ENV
+        echo "REPO_OWNER=$repo_owner" >> $GITHUB_ENV
         echo "REPO_NAME=$repo_name" >> $GITHUB_ENV
       shell: bash
   
