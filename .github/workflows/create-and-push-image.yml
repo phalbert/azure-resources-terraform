@@ -52,8 +52,9 @@ jobs:
       env:
         ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
         ECR_REPOSITORY: ${{ inputs.image_repo }}
-        COMMIT_SHORT: $(git rev-parse --short ${{ github.sha }})
       run: |
+        COMMIT_SHORT=$(git rev-parse --short ${{ github.sha }})
+
         # Build and push image with short commit ID and triggered by as tags
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_SHORT .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_SHORT
