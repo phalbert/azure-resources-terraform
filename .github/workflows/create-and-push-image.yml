@@ -76,4 +76,4 @@ jobs:
 
         # Tag image with workflow ID and push
         docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_SHORT $ECR_REGISTRY/$ECR_REPOSITORY:build-${{ github.run_id }}
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:workflow-${{ github.run_id }}
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:build-${{ github.run_id }}
