@@ -41,6 +41,7 @@ jobs:
       id: get-commit-id
       run: |
         echo "COMMIT_SHORT=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+        echo "COMMIT_SHA=$(git rev-parse HEAD)" >> $GITHUB_ENV
       shell: bash
     
     - name: Configure AWS credentials
@@ -64,8 +65,8 @@ jobs:
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_SHORT
 
         # Tag image with commit ID and push
-        docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_SHORT $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }}
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }}
+        docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_SHORT $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_SHA
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_SHA
 
         # Tag image with triggered by and push
         docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_SHORT $ECR_REGISTRY/$ECR_REPOSITORY:actor-${TRIGGERED_BY//[^a-zA-Z0-9]/-}
