@@ -82,3 +82,14 @@ jobs:
         # Tag image with workflow ID and push
         docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_SHORT $ECR_REGISTRY/$ECR_REPOSITORY:build-${{ github.run_id }}
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:build-${{ github.run_id }}
+
+    - name: Notify Port
+      uses: port-labs/port-github-action@v1
+      with:
+        clientId: ${{ secrets.PORT_CLIENT_ID }}
+        clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+        operation: PATCH_RUN
+        baseUrl: https://api.getport.io
+        runId: ${{ fromJson(inputs.port_payload).context.runId }}
+        logMessage: |
+          Built and pushed image to ECR
