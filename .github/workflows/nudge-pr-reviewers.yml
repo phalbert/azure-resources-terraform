@@ -34,7 +34,7 @@ jobs:
       - name: Send Slack Notification
         run: |
             reviews_json="${{ steps.get_reviewers.outputs.reviews_file_path }}"
-            reviewers=$(jq -r '.[].user.login' $reviews_json)
+            reviewers=$(jq -r '.[].user.login' $reviews_json | sort -u)
 
             echo "Reviewers: $reviewers"
 
