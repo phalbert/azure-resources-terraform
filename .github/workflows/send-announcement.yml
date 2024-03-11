@@ -47,12 +47,12 @@ jobs:
       - name: Extract entities from search results
         id: extract_entities
         run: |
-            entities=$(echo "${{ steps.search.outputs.entities }}" | jq -r '[.[] | select(.properties.slack) | {title: .title, slack: .properties.slack}]')
-            if [ -z "${entities}" ]; then
-                echo "No entities found"
-                exit 0
-            fi
-            echo "::set-env name=ENTITIES::${entities}"
+            # save the entities to a  json file
+            echo "${{ steps.search.outputs.entities }}" > entities.json
+
+            # extract the entities with jq and save them to the GITHUB_ENV. filter out the title and properties.slack fields into a new array
+            echo "::set-env name=ENTITIES::$(jq -r '.[] | select(.properties.slack) | {title: .title, slack: .properties.slack}' entities.json | jq -s .)"
+            
 
       - name: Send Slack Notification
         if: ${{ steps.search.outputs.entities > 0 }}
