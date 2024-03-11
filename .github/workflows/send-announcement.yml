@@ -18,6 +18,7 @@ jobs:
 
     steps:
       - name: Search for Consuming Services
+        id: search
         uses: port-labs/port-github-action@v1
         env: 
           sending_api: ${{ fromJson(inputs.port_payload).payload.entity.identifier }}
@@ -60,7 +61,7 @@ jobs:
           echo "::set-env name=ENTITIES::${entities}"
 
       - name: Send Slack Notification
-        if: ${{ steps.extract_entities.outputs.entities > 0 }}
+        if: ${{ steps.search.outputs.entities > 0 }}
         run: |
           # loop through the entities and send a slack message to each one with the message from the input and with the title of the entity
           for entity in $(echo "${{ env.ENTITIES }}" | jq -r '.[] | @base64'); do
