@@ -32,7 +32,7 @@ jobs:
 
       - name: Send Slack Notification
         run: |
-          curl -X POST -H 'Content-type: application/json' --data '{"text":"Hello, World!"}' https://hooks.slack.com/services/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
+            curl -X POST -H 'Content-type: application/json' --data '{"text":"Hello, PR ${{ env.PR_NUMBER }}!"}' ${{ secrets.SLACK_WEBHOOK_URL }}
 
       - name: Notify Port
         uses: port-labs/port-github-action@v1
@@ -43,4 +43,4 @@ jobs:
           baseUrl: https://api.getport.io
           runId: ${{ fromJson(inputs.port_payload).context.runId }}
           logMessage: |
-            GitHub Action result for ${{ env.GITHUB_ACTION_TYPE }} action on PR ${{ env.PR_NUMBER }}: ${{ env.GITHUB_ACTION_RESULT_MESSAGE }}
+            GitHub Action completed!
