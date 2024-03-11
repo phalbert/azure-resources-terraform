@@ -3,9 +3,6 @@ name: Nudge Pull Request Reviewers
 on:
   workflow_dispatch:
     inputs:
-      action: # 'close' or 'action' -- make this a select in Port UI
-        required: true
-        type: string
       port_payload:
         required: true
         description: "Port's payload, including details for who triggered the action and general context (blueprint, run id, etc...)"
