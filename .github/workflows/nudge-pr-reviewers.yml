@@ -24,6 +24,7 @@ jobs:
           echo "PR_NUMBER=$pr_number" >> $GITHUB_ENV
 
       - name: Get GitHub Pull Request Reviewers
+        id: get_reviewers
         uses: LiamPerson/get-reviews-action@v1.1.2
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -32,7 +33,11 @@ jobs:
 
       - name: Send Slack Notification
         run: |
-            curl -X POST -H 'Content-type: application/json' --data '{"text":"Hello, PR ${{ env.PR_NUMBER }}!"}' ${{ secrets.SLACK_WEBHOOK_URL }}
+            reviewers="${{ steps.get_reviewers.outputs.reviewers }}"
+            pr_link="https://github.com/${{ env.REPO_INFO }}/pull/${{ env.PR_NUMBER }}"
+            message="Hello! Just a friendly reminder to review the pull request ${{ env.PR_NUMBER }}: $pr_link"
+
+            curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"$message\"}" ${{ secrets.SLACK_WEBHOOK_URL }}
 
       - name: Notify Port
         uses: port-labs/port-github-action@v1
