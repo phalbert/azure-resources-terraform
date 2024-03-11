@@ -1,4 +1,4 @@
-name: Manage Pull Request
+name: Nudge Pull Request Reviewers
 
 on:
   workflow_dispatch:
