@@ -43,6 +43,8 @@ jobs:
       - name: Extract entities from search results
         id: extract_entities
         run: |
+          echo "${{ steps.search.outputs.entities }}"
+
           # extract the title and slack fields from the properties field of each item in the entities output array and store them in GITHUB_ENV but only if slack is not empty
           entities=$(echo "${{ steps.search.outputs.entities }}" | jq -r '[.[] | select(.properties.slack) | {title: .title, slack: .properties.slack}]')
 
@@ -55,6 +57,7 @@ jobs:
           echo "::set-env name=ENTITIES::${entities}"
 
       - name: Send Slack Notification
+        if: ${{ steps.extract_entities.outputs.entities > 0 }}
         run: |
           # loop through the entities and send a slack message to each one with the message from the input and with the title of the entity
           for entity in $(echo "${{ env.ENTITIES }}" | jq -r '.[] | @base64'); do
@@ -77,4 +80,5 @@ jobs:
           runId: ${{ fromJson(inputs.port_payload).context.runId }}
           logMessage: |
             # Log that message was sent to entities and specify them by title as a comma sepatated list
+            # if there are no entities, log that no entities were found else log the entities by title
             Message sent to entities! Entities: ${{ env.ENTITIES }}
