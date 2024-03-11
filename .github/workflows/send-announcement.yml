@@ -1,4 +1,4 @@
-name: Nudge Pull Request Reviewers
+name: SenD Message to Service Owners
 
 on:
   workflow_dispatch:
@@ -79,5 +79,5 @@ jobs:
           logMessage: |
             # Log that message was sent to entities and specify them by title as a comma sepatated list
             Message sent to entities: ${{ env.ENTITIES | fromJson | map(.title) | join(", ") }}
-            
+
 
