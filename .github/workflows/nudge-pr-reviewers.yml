@@ -33,7 +33,12 @@ jobs:
 
       - name: Send Slack Notification
         run: |
-            reviewers="${{ steps.get_reviewers.outputs.reviewers }}"
+            reviews_json="${{ steps.get_reviewers.outputs.reviews_file_path }}"
+            reviewers=$(jq -r '.[].user.login' $reviews_json)
+
+            echo "Reviewers: $reviewers"
+
+
             pr_link="https://github.com/${{ env.REPO_INFO }}/pull/${{ env.PR_NUMBER }}"
             message="Hello! Just a friendly reminder to review the pull request ${{ env.PR_NUMBER }}: $pr_link"
 
