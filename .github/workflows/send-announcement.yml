@@ -50,20 +50,16 @@ jobs:
             # save the entities to a  json file
             echo "${{ steps.search.outputs.entities }}" > entities.json
 
-            # extract the entities with jq and save them to the GITHUB_ENV. filter out the title and properties.slack fields into a new array
-            echo "::set-env name=ENTITIES::$(jq -r '.[] | select(.properties.slack) | {title: .title, slack: .properties.slack}' entities.json | jq -s .)"
-            
-
       - name: Send Slack Notification
         if: ${{ steps.search.outputs.entities > 0 }}
         run: |
           # loop through the entities and send a slack message to each one with the message from the input and with the title of the entity
-          for entity in $(echo "${{ env.ENTITIES }}" | jq -r '.[] | @base64'); do
+          for entity in $(echo "${{ steps.search.outputs.entities }}" | jq -r '.[] | @base64'); do
               _entity() {
                   echo "${1}" | base64 --decode
               }
               title=$(_entity $(echo "${entity}" | jq -r '.title'))
-              slack=$(_entity $(echo "${entity}" | jq -r '.slack'))
+              slack=$(_entity $(echo "${entity}" | jq -r '.properties.slack'))
               message="${{ github.event.inputs.message }} - ${title}"
               curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"$message\"}" $slack
           done
@@ -77,4 +73,4 @@ jobs:
           baseUrl: https://api.getport.io
           runId: ${{ fromJson(inputs.port_payload).context.runId }}
           logMessage: |
-            Message sent to entities! Entities: ${{ env.ENTITIES }}
+            Message sent to entities
