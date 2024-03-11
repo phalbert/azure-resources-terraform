@@ -1,0 +1,83 @@
+name: Nudge Pull Request Reviewers
+
+on:
+  workflow_dispatch:
+    inputs:
+      message:
+        description: "Message to send to service owners"
+        required: true
+        type: string
+      port_payload:
+        required: true
+        description: "Port's payload, including details for who triggered the action and general context (blueprint, run id, etc...)"
+        type: string
+
+jobs:
+  manage-pr:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Search for Consuming Services
+        uses: port-labs/port-github-action@v1
+        with:
+          clientId: ${{ secrets.CLIENT_ID }}
+          clientSecret: ${{ secrets.CLIENT_SECRET }}
+          operation: SEARCH
+          query: |
+            {
+                "combinator": "and",
+                "rules": [
+                    {
+                        "property": "$blueprint",
+                        "operator": "=",
+                        "value": "service"
+                    },
+                    {
+                        "blueprint": "api",
+                        "operator": "relatedTo",
+                        "value": "phone_api"
+                    }
+                ]
+            }
+      
+      - name: Extract entities from search results
+        id: extract_entities
+        run: |
+            # extract the title and slack fields from the properties field of each item in the entities output array and store them in GITHUB_ENV but only if slack is not empty
+            entities=$(echo "${{ steps.search.outputs.entities }}" | jq -r '[.[] | select(.properties.slack) | {title: .title, slack: .properties.slack}]')
+
+            # if there are no entities, exit the workflow
+            if [ -z "${entities}" ]; then
+                echo "No entities found"
+                exit 0
+            fi
+
+            echo "::set-env name=ENTITIES::${entities}"
+            
+
+      - name: Send Slack Notification
+        run: |
+            # loop through the entities and send a slack message to each one with the message from the input and with the title of the entity
+            for entity in $(echo "${{ env.ENTITIES }}" | jq -r '.[] | @base64'); do
+                _entity() {
+                    echo "${1}" | base64 --decode
+                }
+                title=$(_entity $(echo "${entity}" | jq -r '.title'))
+                slack=$(_entity $(echo "${entity}" | jq -r '.slack'))
+                message="${{ github.event.inputs.message }} - ${title}"
+                curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"$message\"}" $slack
+            done
+
+      - name: Notify Port
+        uses: port-labs/port-github-action@v1
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          operation: PATCH_RUN
+          baseUrl: https://api.getport.io
+          runId: ${{ fromJson(inputs.port_payload).context.runId }}
+          logMessage: |
+            # Log that message was sent to entities and specify them by title as a comma sepatated list
+            Message sent to entities: ${{ env.ENTITIES | fromJson | map(.title) | join(", ") }}
+            
+
