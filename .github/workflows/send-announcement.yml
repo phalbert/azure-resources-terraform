@@ -44,12 +44,6 @@ jobs:
                 ]
             }
 
-      - name: Extract entities from search results
-        id: extract_entities
-        run: |
-            # save the entities to a  json file
-            echo "${{ steps.search.outputs.entities }}" > entities.json
-
       - name: Send Slack Notification
         if: ${{ steps.search.outputs.entities > 0 }}
         run: |
