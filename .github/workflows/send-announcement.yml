@@ -18,22 +18,18 @@ jobs:
     outputs:
       consuming_services: ${{ steps.search.outputs.entities }}  # Output array of consuming service entities
     steps:
-    - name: Get Bearer Token
+    - name: Make Request
       id: get_token
-      run: |
-        response=$(curl -X POST -H "Content-Type: application/json" -d '{
-          "clientId": "'${{ secrets.PORT_CLIENT_ID }}'",
-          "clientSecret": "'${{ secrets.PORT_CLIENT_SECRET }}'"
-        }' https://api.getport.io/v1/auth/access_token)
-        token=$(echo "$response" | jq -r '.accessToken')
-        echo "::set-output name=token::$token"
+      uses: fjogeleit/http-request-action@v1
+      with:
+        url: "http://yoursite.com/api"
+        customHeaders: '{"Content-Type": "application/json"}'
+        data: '{"clientId": "${{ secrets.PORT_CLIENT_ID }}", "clientSecret": "${{ secrets.PORT_CLIENT_SECRET }}"}'
 
     - name: Search for Consuming Services
       id: search
-      env:
-        token: ${{ steps.get_token.outputs.token }}
       run: |
-        token=${{ steps.get_token.outputs.token }}
+        token=${{ steps.get_token.outputs.response }}
         sending_api=$(echo ${{ fromJson(inputs.port_payload).payload.entity.identifier }})
         response=$(curl -X POST -H "
           Content-Type: application/json
