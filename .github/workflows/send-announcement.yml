@@ -47,8 +47,8 @@ jobs:
       - name: Extract Fields from Output
         id: extract_fields
         run: |
-          echo "${{ steps.search.outputs.entities }}"  # Print the entity data to the console
-          echo "::set-output name=consuming_services::${{ steps.search.outputs.entities }}"  # Set the consuming_services output
+          echo "${{ steps.search.outputs.entities }}" > services.json  # Save the entity data to a file
+          echo "::set-output name=consuming_services::$(jq -r '[.[] | {title: .title, url: .properties.slack}]' services.json)"  # Set the consuming_services output
 
   send_notifications:
     runs-on: ubuntu-latest
