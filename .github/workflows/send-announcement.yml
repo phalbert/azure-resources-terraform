@@ -44,13 +44,16 @@ jobs:
                 ]
             }
 
+      - name: Show Response
+        run: |
+          echo ${{ steps.search.outputs.entities }}
+          echo ${{ fromJson(steps.search.outputs.entities)[0].properties.slack }}
+
       - name: Send Slack Notification
         if: ${{ steps.search.outputs.entities != '' }}
-        env:
-          entities: ${{ fromJson(steps.search.outputs.entities) }}
         run: |
           # loop through the entities and send a slack message to each one with the message from the input and with the title of the entity
-          for entity in $(echo "${entities}" | jq -r '.[] | @base64'); do
+          for entity in $(echo "${{ steps.search.outputs.entities }}" | jq -r '.[] | @base64'); do
               _entity() {
                   echo "${1}" | base64 --decode
               }
