@@ -45,11 +45,4 @@ test*
 templates
 template-assets
 
-
-      - name: Extract entities from search results
-        id: extract_entities
-        run: |
-            echo "::set-output name=entities::$(echo '${{ steps.search.outputs.entities }}' | jq -r '.[]')" 
-SLACK_WEBHOOK_URLS=$(jq -r '.[].properties.slack' consuming_services.json | grep -v null | sort -u)
-           
-            echo "$SLACK_WEBHOOK_URLS"
+venv

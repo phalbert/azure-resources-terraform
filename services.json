@@ -10,7 +10,7 @@
       "url": "https://gitlab.com/four-one-financial-services/mayicard/banklayout",
       "language": "CSS",
       "badges": ["Pipeline Status"],
-      "slack": null,
+      "slack": "https://hooks.slack.com/services/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",
       "tier": null
     },
     "relations": { "consumes_api": ["iban_api"] },
