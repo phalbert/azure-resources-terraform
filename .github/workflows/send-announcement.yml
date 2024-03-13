@@ -16,6 +16,8 @@ jobs:
   find_services:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
       - name: Search for Consuming Services
         id: search
         uses: port-labs/port-github-action@v1
