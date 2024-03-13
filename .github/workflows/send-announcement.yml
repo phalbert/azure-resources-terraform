@@ -51,6 +51,7 @@ jobs:
 
       - name: Send Slack Notifications
         run: |
+          echo "ls -a ${{ github.workspace }}"
           python ./scripts/send_slack_notifications.py entities.json ${{ github.event.inputs.message }} "${{ fromJson(inputs.port_payload).payload.entity.title }}"
 
       - name: Notify Port
