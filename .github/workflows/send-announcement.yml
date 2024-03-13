@@ -16,7 +16,7 @@ jobs:
   find_services:
     runs-on: ubuntu-latest
     outputs:
-      consuming_services: ${{ steps.format_output.outputs.entities }}  # Output array of consuming service entities
+      consuming_services: ${{ steps.search.outputs.entities }}  # Output array of consuming service entities
     steps:
       - name: Search for Consuming Services
         id: search
