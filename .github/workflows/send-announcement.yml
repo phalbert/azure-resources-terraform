@@ -13,11 +13,11 @@ on:
         type: string
 
 jobs:
-  find_services:
+  notify_api_consumers:
     runs-on: ubuntu-latest
     steps:
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Run python script
         env:
           MESSAGE: ${{ github.event.inputs.message }}
