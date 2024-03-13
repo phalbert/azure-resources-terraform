@@ -18,40 +18,76 @@ jobs:
     outputs:
       consuming_services: ${{ steps.search.outputs.entities }}  # Output array of consuming service entities
     steps:
-      - name: Search for Consuming Services
-        id: search
-        uses: port-labs/port-github-action@v1
-        env: 
-          sending_api: ${{ fromJson(inputs.port_payload).payload.entity.identifier }}
-        with:
-          clientId: ${{ secrets.PORT_CLIENT_ID }}
-          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
-          runId: ${{ fromJson(inputs.port_payload).context.runId }}
-          operation: SEARCH
-          query: |
-            {
-                "combinator": "and",
-                "rules": [
-                    {
-                        "property": "$blueprint",
-                        "operator": "=",
-                        "value": "service"
-                    },
-                    {
-                        "blueprint": "api",
-                        "operator": "relatedTo",
-                        "value": "${{ env.sending_api }}"
-                    }
-                ]
-            }
+    - name: Get Bearer Token
+      id: get_token
+      run: |
+        response=$(curl -X POST -H 'Content-Type: application/json' -d '{"clientId": "${{ secrets.PORT_CLIENT_ID }}", "clientSecret": "${{ secrets.PORT_CLIENT_SECRET }}"}' https://api.getport.io/v1/auth/access_token)
+        token=$(echo "$response" | jq -r '.access_token')
+        echo "::set-output name=token::$token"
+
+    - name: Search for Consuming Services
+      id: search
+      run: |
+        token=${{ steps.get_token.outputs.token }}
+        sending_api=$(echo ${{ fromJson(inputs.port_payload).payload.entity.identifier }})
+        response=$(curl -X POST -H "
+          Content-Type: application/json
+          Authorization: Bearer $token
+          " -d '{
+            "combinator": "and",
+            "rules": [
+                {
+                    "property": "$blueprint",
+                    "operator": "=",
+                    "value": "service"
+                },
+                {
+                    "blueprint": "api",
+                    "operator": "relatedTo",
+                    "value": "$sending_api"
+                }
+            ]
+          }' https://api.getport.io/v1/entities/search)
+        entities=$(echo "$response" | jq -r '.entities')
+        
+        # get the title and slack property of each entity
+        consuming_services=$(echo "$entities" | jq -r '.[] | {title: .title, url: .properties.slack}')
+        echo "::set-output name=consuming_services::$consuming_services"
+
+      # - name: Search for Consuming Services
+      #   id: search
+      #   uses: port-labs/port-github-action@v1
+      #   env: 
+      #     sending_api: ${{ fromJson(inputs.port_payload).payload.entity.identifier }}
+      #   with:
+      #     clientId: ${{ secrets.PORT_CLIENT_ID }}
+      #     clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+      #     runId: ${{ fromJson(inputs.port_payload).context.runId }}
+      #     operation: SEARCH
+      #     query: |
+      #       {
+      #           "combinator": "and",
+      #           "rules": [
+      #               {
+      #                   "property": "$blueprint",
+      #                   "operator": "=",
+      #                   "value": "service"
+      #               },
+      #               {
+      #                   "blueprint": "api",
+      #                   "operator": "relatedTo",
+      #                   "value": "${{ env.sending_api }}"
+      #               }
+      #           ]
+      #       }
           
-      - name: Format Output
-        id: format_output
-        env:
-          entities: ${{ fromJson(steps.search.outputs.entities) }}
-        run: |
-          # print title and slack property of each entity
-          echo "::set-output name=entities::$(echo "${{ env.entities }}" | jq -r '.[] | {title: .title, url: .properties.slack}')"
+      # - name: Format Output
+      #   id: format_output
+      #   env:
+      #     entities: ${{ fromJson(steps.search.outputs.entities) }}
+      #   run: |
+      #     # print title and slack property of each entity
+      #     echo "::set-output name=entities::$(echo "${{ env.entities }}" | jq -r '.[] | {title: .title, url: .properties.slack}')"
       
   send_notifications:
     runs-on: ubuntu-latest
