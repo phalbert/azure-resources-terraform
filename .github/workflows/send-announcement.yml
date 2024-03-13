@@ -51,7 +51,7 @@ jobs:
           # save the output to a json file
           echo "${{ steps.search.outputs.entities }}" > output.json
           # process the json file to get the consuming services {.title, .properties.slack} and set it as an output
-          consuming_services=$(jq -r '.[] | {title: .title, properties: .properties.slack}' output.json)
+          consuming_services=$(jq -r '.[] | {title: .title, url: .properties.slack}' output.json)
     
       
   send_notifications:
