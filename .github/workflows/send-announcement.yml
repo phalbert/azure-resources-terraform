@@ -50,7 +50,7 @@ jobs:
     needs: find_services   # Dependency on the find_services job
     strategy:
       matrix:
-        service: ${{ needs.find_services.outputs.consuming_services }}  # Matrix iterates over entities
+        service: ${{ fromJson(needs.find_services.outputs.consuming_services) }}  # Matrix iterates over entities
     steps:
       - name: Extract Fields from Output
         id: extract_fields
