@@ -54,10 +54,9 @@ jobs:
             ]
           }' https://api.getport.io/v1/entities/search?exclude_calculated_properties=false&compact=false&attach_title_to_relation=false)
 
-        entities=$(echo "$response" | jq -r '.entities')
-        
+      
         # get the title and slack property of each entity
-        consuming_services=$(echo "$entities" | jq -r '.[] | {title: .title, url: .properties.slack}')
+        consuming_services=$(echo "$response" | jq -r '.[] | {title: .title, url: .properties.slack}')
         echo "::set-output name=consuming_services::$consuming_services"
 
       # - name: Search for Consuming Services
