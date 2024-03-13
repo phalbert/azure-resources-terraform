@@ -48,8 +48,10 @@ jobs:
       - name: Format Output
         id: format_output
         run: |
-          formatted_services=$(echo "${{ steps.search.outputs.entities }}" | jq -r '.[] | { title: (.title | gsub("\'"; "\\\'")), url: .properties.slack }')
-          echo "::set-output name=formatted_services::${formatted_services}" 
+          # save the output to a json file
+          echo "${{ steps.search.outputs.entities }}" > output.json
+          # process the json file to get the consuming services {.title, .properties.slack} and set it as an output
+          consuming_services=$(jq -r '.[] | {title: .title, properties: .properties}' output.json)
     
       
   send_notifications:
