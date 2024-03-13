@@ -47,7 +47,12 @@ jobs:
       - name: Show Response
         run: |
           echo ${{ steps.search.outputs.entities }}
-          echo ${{ fromJson(steps.search.outputs.entities)[0].properties.slack }}
+
+          for entity in ${{ steps.search.outputs.entities }}; do
+            title=$(echo $entity | jq -r '.title');
+            echo "Entity Title: $title";
+          done
+        shell: bash
 
       - name: Send Slack Notification
         if: ${{ steps.search.outputs.entities != '' }}
