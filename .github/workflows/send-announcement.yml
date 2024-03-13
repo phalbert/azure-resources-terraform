@@ -52,7 +52,8 @@ jobs:
                     "value": "$sending_api"
                 }
             ]
-          }' https://api.getport.io/v1/entities/search)
+          }' https://api.getport.io/v1/entities/search?exclude_calculated_properties=false&compact=false&attach_title_to_relation=false)
+
         entities=$(echo "$response" | jq -r '.entities')
         
         # get the title and slack property of each entity
