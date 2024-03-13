@@ -47,12 +47,11 @@ jobs:
           
       - name: Format Output
         id: format_output
+        env:
+          entities: ${{ fromJson(steps.search.outputs.entities) }}
         run: |
-          # save the output to a json file
-          echo "${{ steps.search.outputs.entities }}" > output.json
-          # process the json file to get the consuming services {.title, .properties.slack} and set it as an output
-          consuming_services=$(jq -r '.[] | {title: .title, url: .properties.slack}' output.json)
-    
+          # print title and slack property of each entity
+          echo "::set-output name=entities::$(echo "${{ env.entities }}" | jq -r '.[] | {title: .title, url: .properties.slack}')"
       
   send_notifications:
     runs-on: ubuntu-latest
