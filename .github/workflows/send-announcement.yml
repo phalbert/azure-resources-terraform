@@ -21,12 +21,17 @@ jobs:
     - name: Get Bearer Token
       id: get_token
       run: |
-        response=$(curl -X POST -H 'Content-Type: application/json' -d '{"clientId": "${{ secrets.PORT_CLIENT_ID }}", "clientSecret": "${{ secrets.PORT_CLIENT_SECRET }}"}' https://api.getport.io/v1/auth/access_token)
-        token=$(echo "$response" | jq -r '.access_token')
+        response=$(curl -X POST -H "Content-Type: application/json" -d '{
+          "clientId": "'${{ secrets.PORT_CLIENT_ID }}'",
+          "clientSecret": "'${{ secrets.PORT_CLIENT_SECRET }}'"
+        }' https://api.getport.io/v1/auth/access_token)
+        token=$(echo "$response" | jq -r '.accessToken')
         echo "::set-output name=token::$token"
 
     - name: Search for Consuming Services
       id: search
+      env:
+        token: ${{ steps.get_token.outputs.token }}
       run: |
         token=${{ steps.get_token.outputs.token }}
         sending_api=$(echo ${{ fromJson(inputs.port_payload).payload.entity.identifier }})
