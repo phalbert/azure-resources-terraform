@@ -29,7 +29,7 @@ jobs:
     - name: Search for Consuming Services
       id: search
       run: |
-        token=${{ steps.get_token.outputs.response.accessToken }}
+        token=${{ fromJson(steps.get_token.outputs.response).accessToken }}
         sending_api=$(echo ${{ fromJson(inputs.port_payload).payload.entity.identifier }})
         response=$(curl -X POST -H "
           Content-Type: application/json
