@@ -44,13 +44,7 @@ jobs:
                     }
                 ]
             }
-          
-      - name: Format Output
-        id: format_output
-        run: |
-          # print title and slack property of each entity
-          echo "::set-output name=entities::$(echo "${{ steps.search.outputs.entities }}" | jq -r '.[] | {title: .title, url: .properties.slack}')"
-      
+
   send_notifications:
     runs-on: ubuntu-latest
     needs: find_services   # Dependency on the find_services job
