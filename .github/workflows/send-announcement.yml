@@ -48,7 +48,7 @@ jobs:
       - name: Extract Fields from Output
         id: extract_fields
         run: |
-          formatted_services=$(echo "${{ steps.search.outputs.entities }}" | jq -r '.[] | { title: .title, url: .properties.slack }')
+          formatted_services=$(echo "${{ fromJson(steps.search.outputs.entities) }}" | jq -r '.[] | { title: .title, url: .properties.slack }')
           echo "::set-output name=formatted_services::${formatted_services}" 
 
   send_notifications:
