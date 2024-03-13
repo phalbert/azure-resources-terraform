@@ -22,11 +22,11 @@ jobs:
         id: search
         uses: port-labs/port-github-action@v1
         env: 
-          sending_api: ${{ inputs.port_payload.payload.entity.identifier }}
+          sending_api: ${{ fromJson(inputs.port_payload).payload.entity.identifier }}
         with:
           clientId: ${{ secrets.PORT_CLIENT_ID }}
           clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
-          # runId: ${{ fromJson(inputs.port_payload).context.runId }}
+          runId: ${{ fromJson(inputs.port_payload).context.runId }}
           operation: SEARCH
           query: |
             {
