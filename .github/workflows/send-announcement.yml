@@ -56,7 +56,7 @@ jobs:
           cat entities.json
           # use jq to parse the entities.json file and send a slack notification to the service owners
           jq '[.[] | {title: .title, url: .properties.slack}]' entities.json | xargs -I {} echo "Sending message to {}"
-          python ./scripts/send_slack_notifications.py entities.json ${{ github.event.inputs.message }} "${{ fromJson(inputs.port_payload).payload.entity.title }}"
+          python ./scripts/send_slack_notifications.py ./entities.json ${{ github.event.inputs.message }} "${{ fromJson(inputs.port_payload).payload.entity.title }}"
 
       - name: Notify Port
         uses: port-labs/port-github-action@v1
