@@ -28,7 +28,7 @@ jobs:
           clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
           runId: ${{ fromJson(inputs.port_payload).context.runId }}
           operation: SEARCH
-          exclude: ["readme"]
+          exclude: readme
           query: |
             {
                 "combinator": "and",
