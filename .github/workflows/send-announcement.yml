@@ -44,13 +44,12 @@ jobs:
                 ]
             }
 
-      - name: Show Response
+      - name: Extract and Send Message
         run: |
-          echo ${{ steps.search.outputs.entities }}
-
-          for entity in ${{ steps.search.outputs.entities }}; do
-            title=$(echo $entity | jq -r '.title');
-            echo "Entity Title: $title";
+          for entity in ${{ steps.search.outputs.entities }};
+          do
+            url=$(echo $entity | jq -r '.properties.slack');
+            curl -X POST -H 'Content-type: application/json' --data '{"text": "${{ inputs.message }}"}' $url;
           done
         shell: bash
 
