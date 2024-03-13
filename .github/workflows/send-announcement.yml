@@ -26,34 +26,34 @@ jobs:
         customHeaders: '{"Content-Type": "application/json"}'
         data: '{"clientId": "${{ secrets.PORT_CLIENT_ID }}", "clientSecret": "${{ secrets.PORT_CLIENT_SECRET }}"}'
 
-    - name: Search for Consuming Services
+    - name: Search for Services
       id: search
-      run: |
-        token=${{ fromJson(steps.get_token.outputs.response).accessToken }}
-        sending_api=$(echo ${{ fromJson(inputs.port_payload).payload.entity.identifier }})
-        response=$(curl -X POST -H "
-          Content-Type: application/json
-          Authorization: Bearer $token
-          " -d '{
-            "combinator": "and",
-            "rules": [
-                {
-                    "property": "$blueprint",
-                    "operator": "=",
-                    "value": "service"
-                },
-                {
-                    "blueprint": "api",
-                    "operator": "relatedTo",
-                    "value": "$sending_api"
-                }
-            ]
-          }' https://api.getport.io/v1/entities/search?exclude_calculated_properties=false&compact=false&attach_title_to_relation=false)
+      uses: fjogeleit/http-request-action@v1
+      with:
+        url: "https://api.getport.io/v1/entities/search"
+        customHeaders: '{"Content-Type": "application/json", "Authorization": "Bearer ${{ fromJson(steps.get_token.outputs.response).accessToken }}"}'
+        data: |
+          {
+              "combinator": "and",
+              "rules": [
+                  {
+                      "property": "blueprint",
+                      "operator": "=",
+                      "value": "service"
+                  },
+                  {
+                      "blueprint": "api",
+                      "operator": "relatedTo",
+                      "value": "${{ fromJson(inputs.port_payload).payload.entity.identifier }}"
+                  }
+              ]
+          }
 
-      
-        # get the title and slack property of each entity
-        consuming_services=$(echo "$response" | jq -r '.[] | {title: .title, url: .properties.slack}')
-        echo "::set-output name=consuming_services::$consuming_services"
+    - name: Format Output
+      id: format_output
+      run: |
+        # print title and slack property of each entity
+        echo "::set-output name=entities::$(echo "${{ steps.search.outputs.response }}" | jq -r '.[] | {title: .title, url: .properties.slack}')"
 
       # - name: Search for Consuming Services
       #   id: search
