@@ -51,16 +51,8 @@ jobs:
 
       - name: Send Slack Notifications
         run: |
-          # use jq to parse the entities.json file into a list of objects {title: "service title", url: "service id"} and send a slack notification to each service owner
-          for row in $(jq -c '.[]' entities.json); do
-            title=$(echo $row | jq -r '.title')
-            url=$(echo $row | jq -r '.url')
-            echo "Sending message to $title"
-            echo "Message: ${{ github.event.inputs.message }}"
-            echo "Target Entity: $title"
-            echo "URL: $url"
-            # send slack notification
-          done
+          python ./scripts/send_slack_notifications.py entities.json ${{ github.event.inputs.message }} "${{ fromJson(inputs.port_payload).payload.entity.title }}"
+
       - name: Notify Port
         uses: port-labs/port-github-action@v1
         with:
