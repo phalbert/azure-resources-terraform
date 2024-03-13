@@ -44,6 +44,11 @@ jobs:
                     }
                 ]
             }
+      - name: Extract Fields from Output
+        id: extract_fields
+        run: |
+          echo "${{ steps.search.outputs.entities }}"  # Print the entity data to the console
+          echo "::set-output name=consuming_services::${{ steps.search.outputs.entities }}"  # Set the consuming_services output
 
   send_notifications:
     runs-on: ubuntu-latest
@@ -57,6 +62,9 @@ jobs:
         run: |
           echo "${{ matrix.service }}"  # Print the entity data to the console
           echo "::set-output name=slack::$(echo "${{ matrix.service }}" | jq -r '.properties.slack')"  # Set the slack output 
+          # read a file json and set the output
+          
+
   
       - name: Send Slack Notification
         run: |
