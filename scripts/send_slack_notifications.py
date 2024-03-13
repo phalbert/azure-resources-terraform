@@ -18,7 +18,7 @@ if __name__ == "__main__":
     entities_file = sys.argv[1]
     message = sys.argv[2]
     api = sys.argv[3]
-
+    
     with open(entities_file) as f:
         entities = json.load(f)
 

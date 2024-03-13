@@ -47,7 +47,7 @@ jobs:
             
       - name: Save Entities as JSON
         run: |
-          echo ${{ toJson(steps.search.outputs.entities) }} > entities.json
+          echo ${{ fromJson(steps.search.outputs.entities) }} > entities.json
 
       - name: Send Slack Notifications
         run: |
