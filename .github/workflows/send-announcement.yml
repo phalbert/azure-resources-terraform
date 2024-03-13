@@ -45,11 +45,11 @@ jobs:
                 ]
             }
           
-      - name: Print Output
-        run: echo "${{ steps.search.outputs.entities }}" 
-      
-      - name: Print Output
-        run: echo "${{ fromJson(steps.search.outputs.entities) }}" 
+      - name: Format Output
+        id: format_output
+        run: |
+          formatted_services=$(echo "${{ steps.search.outputs.entities }}" | jq -r '.[] | { title: (.title | gsub("\'"; "\\\'")), url: .properties.slack }')
+          echo "::set-output name=formatted_services::${formatted_services}" 
     
       
   send_notifications:
