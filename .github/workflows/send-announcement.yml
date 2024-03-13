@@ -20,7 +20,7 @@ jobs:
     steps:
       - name: Search for Consuming Services
         id: search
-        uses: port-labs/port-github-action@v1
+        uses: phalbert/port-github-action@v1
         env: 
           sending_api: ${{ fromJson(inputs.port_payload).payload.entity.identifier }}
         with:
@@ -28,6 +28,7 @@ jobs:
           clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
           runId: ${{ fromJson(inputs.port_payload).context.runId }}
           operation: SEARCH
+          exclude: ["readme"]
           query: |
             {
                 "combinator": "and",
@@ -47,8 +48,9 @@ jobs:
       - name: Extract Fields from Output
         id: extract_fields
         run: |
-          echo "${{ steps.search.outputs.entities }}" > services.json  # Save the entity data to a file
-          echo "::set-output name=consuming_services::$(jq -r '[.[] | {title: .title, url: .properties.slack}]' services.json)"  # Set the consuming_services output
+          echo "${{ steps.search.outputs.entities }}"  # Print the entity data to the console
+          echo "::set-output name=consuming_services::${{ steps.search.outputs.entities }}"  # Set the consuming_services output
+
 
   send_notifications:
     runs-on: ubuntu-latest
