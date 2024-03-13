@@ -1,0 +1,6 @@
+version: '3'
+
+tasks:
+  act:
+    cmds:
+      - act workflow_dispatch -W '.github/workflows/send-announcement.yml' --container-architecture linux/amd64 -e payload.json --secret-file .env

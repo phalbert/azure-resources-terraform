@@ -1,0 +1,72 @@
+{
+  "inputs": {
+    "message": "Message to entities",
+    "port_payload": {
+      "action": "send_announcement",
+      "resourceType": "run",
+      "status": "TRIGGERED",
+      "trigger": {
+        "by": {
+          "orgId": "org_hfXb9qK6lQAQ8C8n",
+          "userId": "google-oauth2|114166543937077906073",
+          "user": {
+            "email": "ahosea15@gmail.com",
+            "firstName": "Albert",
+            "lastName": "Luganga",
+            "phoneNumber": "",
+            "picture": "https://lh3.googleusercontent.com/a/ACg8ocIRYg7Ngb8-X3W952rPr4r2iWsjYobntBTPsEYcbCJR=s96-c",
+            "providers": ["google"],
+            "status": "ACTIVE",
+            "id": "google-oauth2|114166543937077906073",
+            "createdAt": "2023-11-14T13:10:22.347Z",
+            "updatedAt": "2024-03-13T09:29:48.667Z"
+          }
+        },
+        "origin": "UI",
+        "at": "2024-03-13T10:07:14.968Z"
+      },
+      "context": {
+        "entity": "phone_api",
+        "blueprint": "api",
+        "runId": "r_xMtgaNHSjS2okQdb"
+      },
+      "payload": {
+        "entity": {
+          "identifier": "phone_api",
+          "title": "Phone API",
+          "team": [],
+          "icon": "RestApi",
+          "properties": {
+            "status": "Active",
+            "description": null,
+            "tags": ["Payments"],
+            "visibility": "Internal",
+            "documentation": "https://phonevalidation.abstractapi.com/v1/"
+          },
+          "relations": {},
+          "createdBy": "google-oauth2|114166543937077906073",
+          "updatedBy": "google-oauth2|114166543937077906073",
+          "createdAt": "2024-03-11T16:24:19.649Z",
+          "updatedAt": "2024-03-11T16:24:19.649Z",
+          "blueprint": "api"
+        },
+        "action": {
+          "invocationMethod": {
+            "type": "GITHUB",
+            "org": "phalbert",
+            "repo": "azure-resources-terraform",
+            "workflow": "send-announcement.yml",
+            "omitUserInputs": false,
+            "omitPayload": false,
+            "reportWorkflowStatus": true
+          },
+          "trigger": "DAY-2"
+        },
+        "properties": {
+          "message": "hghj"
+        },
+        "censoredProperties": []
+      }
+    }
+  }
+}

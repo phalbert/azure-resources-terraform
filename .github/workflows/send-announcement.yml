@@ -16,79 +16,40 @@ jobs:
   find_services:
     runs-on: ubuntu-latest
     outputs:
-      consuming_services: ${{ steps.search.outputs.entities }}  # Output array of consuming service entities
+      consuming_services: ${{ steps.format_output.outputs.entities }}  # Output array of consuming service entities
     steps:
-    - name: Make Request
-      id: get_token
-      uses: fjogeleit/http-request-action@v1
-      with:
-        url: "https://api.getport.io/v1/auth/access_token"
-        customHeaders: '{"Content-Type": "application/json"}'
-        data: '{"clientId": "${{ secrets.PORT_CLIENT_ID }}", "clientSecret": "${{ secrets.PORT_CLIENT_SECRET }}"}'
-
-    - name: Search for Services
-      id: search
-      uses: fjogeleit/http-request-action@v1
-      with:
-        url: "https://api.getport.io/v1/entities/search"
-        customHeaders: '{"Content-Type": "application/json", "Authorization": "Bearer ${{ fromJson(steps.get_token.outputs.response).accessToken }}"}'
-        data: |
-          {
-              "combinator": "and",
-              "rules": [
-                  {
-                      "property": "blueprint",
-                      "operator": "=",
-                      "value": "service"
-                  },
-                  {
-                      "blueprint": "api",
-                      "operator": "relatedTo",
-                      "value": "${{ fromJson(inputs.port_payload).payload.entity.identifier }}"
-                  }
-              ]
-          }
-
-    - name: Format Output
-      id: format_output
-      run: |
-        # print title and slack property of each entity
-        echo "::set-output name=entities::$(echo "${{ steps.search.outputs.response }}" | jq -r '.[] | {title: .title, url: .properties.slack}')"
-
-      # - name: Search for Consuming Services
-      #   id: search
-      #   uses: port-labs/port-github-action@v1
-      #   env: 
-      #     sending_api: ${{ fromJson(inputs.port_payload).payload.entity.identifier }}
-      #   with:
-      #     clientId: ${{ secrets.PORT_CLIENT_ID }}
-      #     clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
-      #     runId: ${{ fromJson(inputs.port_payload).context.runId }}
-      #     operation: SEARCH
-      #     query: |
-      #       {
-      #           "combinator": "and",
-      #           "rules": [
-      #               {
-      #                   "property": "$blueprint",
-      #                   "operator": "=",
-      #                   "value": "service"
-      #               },
-      #               {
-      #                   "blueprint": "api",
-      #                   "operator": "relatedTo",
-      #                   "value": "${{ env.sending_api }}"
-      #               }
-      #           ]
-      #       }
+      - name: Search for Consuming Services
+        id: search
+        uses: port-labs/port-github-action@v1
+        env: 
+          sending_api: ${{ inputs.port_payload.payload.entity.identifier }}
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          # runId: ${{ fromJson(inputs.port_payload).context.runId }}
+          operation: SEARCH
+          query: |
+            {
+                "combinator": "and",
+                "rules": [
+                    {
+                        "property": "$blueprint",
+                        "operator": "=",
+                        "value": "service"
+                    },
+                    {
+                        "blueprint": "api",
+                        "operator": "relatedTo",
+                        "value": "${{ env.sending_api }}"
+                    }
+                ]
+            }
           
-      # - name: Format Output
-      #   id: format_output
-      #   env:
-      #     entities: ${{ fromJson(steps.search.outputs.entities) }}
-      #   run: |
-      #     # print title and slack property of each entity
-      #     echo "::set-output name=entities::$(echo "${{ env.entities }}" | jq -r '.[] | {title: .title, url: .properties.slack}')"
+      - name: Format Output
+        id: format_output
+        run: |
+          # print title and slack property of each entity
+          echo "::set-output name=entities::$(echo "${{ steps.search.outputs.entities }}" | jq -r '.[] | {title: .title, url: .properties.slack}')"
       
   send_notifications:
     runs-on: ubuntu-latest
