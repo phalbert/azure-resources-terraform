@@ -1,0 +1,41 @@
+[
+  {
+    "identifier": "four-one-financial-services/mayicard/banklayout",
+    "title": "banklayout",
+    "icon": null,
+    "blueprint": "service",
+    "team": [],
+    "properties": {
+      "readme": "# banklayout\n\nCreate a layout similar to the nav bank layout dashboard",
+      "url": "https://gitlab.com/four-one-financial-services/mayicard/banklayout",
+      "language": "CSS",
+      "badges": ["Pipeline Status"],
+      "slack": null,
+      "tier": null
+    },
+    "relations": { "consumes_api": ["iban_api"] },
+    "createdAt": "2024-01-19T15:22:00.380Z",
+    "createdBy": "***",
+    "updatedAt": "2024-03-13T11:00:39.524Z",
+    "updatedBy": "google-oauth2|114166543937077906073",
+    "scorecards": {
+      "ProductionReadiness": {
+        "rules": [
+          { "identifier": "hasReadme", "status": "SUCCESS", "level": "Bronze" },
+          {
+            "identifier": "usesSupportedLang",
+            "status": "FAILURE",
+            "level": "Silver"
+          },
+          { "identifier": "hasTeam", "status": "FAILURE", "level": "Gold" }
+        ],
+        "level": "Bronze"
+      }
+    },
+    "scorecardsStats": {
+      "passedCount": 1,
+      "failedCount": 2,
+      "passedPercentage": 33.333
+    }
+  }
+]
