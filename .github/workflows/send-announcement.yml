@@ -20,7 +20,7 @@ jobs:
     steps:
       - name: Search for Consuming Services
         id: search
-        uses: phalbert/port-github-action@v1.6.2
+        uses: phalbert/port-github-action@v1.6.3
         env: 
           sending_api: ${{ fromJson(inputs.port_payload).payload.entity.identifier }}
         with:
