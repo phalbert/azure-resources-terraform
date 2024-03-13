@@ -18,6 +18,8 @@ if __name__ == "__main__":
     entities_file = sys.argv[1]
     message = sys.argv[2]
     api = sys.argv[3]
+
+    print(f"Sending notification to entities in {entities_file} with message: {message}")
     
     with open(entities_file) as f:
         entities = json.load(f)
