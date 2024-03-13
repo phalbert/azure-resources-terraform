@@ -44,14 +44,20 @@ jobs:
                     }
                 ]
             }
+          
+      - name: Print Output
+        run: echo "${{ steps.search.outputs.entities }}" 
       
+      - name: Print Output
+        run: echo "${{ fromJson(steps.search.outputs.entities) }}" 
+    
       
   send_notifications:
     runs-on: ubuntu-latest
     needs: find_services   # Dependency on the find_services job
     strategy:
       matrix:
-        service: ${{ fromJson(needs.find_services.outputs.consuming_services) }}  # Matrix iterates over entities
+        service: ${{ needs.find_services.outputs.consuming_services }}  # Matrix iterates over entities
     steps:
       - name: Extract Fields from Output
         id: extract_fields
