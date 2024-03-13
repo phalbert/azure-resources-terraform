@@ -51,7 +51,7 @@ jobs:
 
       - name: Send Slack Notifications
         run: |
-          python ./scripts/send_slack_notifications.py entities.json ${{ github.event.inputs.message }} ${{ fromJson(inputs.port_payload).payload.entity.title }}
+          python ./scripts/send_slack_notifications.py entities.json ${{ github.event.inputs.message }} "${{ fromJson(inputs.port_payload).payload.entity.title }}"
 
       - name: Notify Port
         uses: port-labs/port-github-action@v1
