@@ -20,7 +20,7 @@ jobs:
     steps:
       - name: Search for Consuming Services
         id: search
-        uses: phalbert/port-github-action@v1.6.1
+        uses: phalbert/port-github-action@v1.6.2
         env: 
           sending_api: ${{ fromJson(inputs.port_payload).payload.entity.identifier }}
         with:
@@ -28,7 +28,7 @@ jobs:
           clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
           runId: ${{ fromJson(inputs.port_payload).context.runId }}
           operation: SEARCH
-          exclude: readme
+          excludeProperties: readme
           query: |
             {
                 "combinator": "and",
