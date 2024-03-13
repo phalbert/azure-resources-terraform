@@ -22,14 +22,14 @@ jobs:
       id: get_token
       uses: fjogeleit/http-request-action@v1
       with:
-        url: "http://yoursite.com/api"
+        url: "https://api.getport.io/v1/auth/access_token"
         customHeaders: '{"Content-Type": "application/json"}'
         data: '{"clientId": "${{ secrets.PORT_CLIENT_ID }}", "clientSecret": "${{ secrets.PORT_CLIENT_SECRET }}"}'
 
     - name: Search for Consuming Services
       id: search
       run: |
-        token=${{ steps.get_token.outputs.response }}
+        token=${{ steps.get_token.outputs.response.accessToken }}
         sending_api=$(echo ${{ fromJson(inputs.port_payload).payload.entity.identifier }})
         response=$(curl -X POST -H "
           Content-Type: application/json
