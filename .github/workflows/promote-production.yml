@@ -1,4 +1,4 @@
-name: Rollback ArgoCD Deployment Image
+name: Promote Production
 
 on:
   workflow_dispatch:
