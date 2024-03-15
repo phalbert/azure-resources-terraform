@@ -46,3 +46,4 @@ templates
 template-assets
 
 venv
+.DS_Store
