@@ -9,7 +9,7 @@ on:
           Port's payload, including details for who triggered the action and
           general context (blueprint, run id, etc...)
 jobs:
-  rollback-deployment:
+  promote-deployment:
     runs-on: ubuntu-latest
     steps:
       - name: Inform execution of request to promote deployment image
@@ -30,6 +30,7 @@ jobs:
           clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
           baseUrl: https://api.getport.io
           operation: GET
+          blueprint: running_service
           identifier: ${{fromJson(github.event.inputs.port_payload).payload.entity.relations.test_runtime }}
           runId: ${{ fromJson(github.event.inputs.port_payload).context.runId }}
           logMessage: "Getting the current staging image..."
