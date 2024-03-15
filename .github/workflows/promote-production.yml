@@ -20,7 +20,7 @@ jobs:
           baseUrl: https://api.getport.io
           operation: PATCH_RUN
           runId: ${{fromJson(github.event.inputs.port_payload).context.runId}}
-          logMessage: "About to rollback deployment image in argocd..."
+          logMessage: "About to promote deployment image from staging to production..."
 
       - name: Get the current staging image
         id: get-staging
