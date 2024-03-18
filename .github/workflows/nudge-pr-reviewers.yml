@@ -34,13 +34,14 @@ jobs:
       - name: Send Slack Notification
         env:
           PR_TITLE: ${{ fromJson(inputs.port_payload).payload.entity.title }}
-          REVIEWERS: ${{ fromJson(inputs.port_payload).payload.properties.reviewers }}
+          PR_REVIEWERS: ${{ fromJson(inputs.port_payload).payload.properties.reviewers }}
         run: |
           reviews_json="${{ steps.get_reviewers.outputs.reviews_file_path }}"
           reviewers=$(jq -r '.[].user.login' $reviews_json | sort -u)
 
-          echo "Reviewers: $REVIEWERS"
-          port_reviewers=$(echo $REVIEWERS | tr ' ' '\n' | awk '{print "  - " $0}')
+          echo "Reviewers: $PR_REVIEWERS"
+          # get reviewers from PR_REVIEWERS array using jq
+          port_reviewers=$(echo $PR_REVIEWERS | jq -r '.[]')
           echo "Port Reviewers: $port_reviewers"
 
           pr_title="${{ fromJson(inputs.port_payload).payload.entity.title }}"
@@ -65,7 +66,7 @@ jobs:
                 "fields": [
                   {
                     "type": "mrkdwn",
-                    "text": "*PR:* [$pr_title]($pr_link) " 
+                    "text": "*PR:* <$pr_link|$pr_title>" 
                   },
                   {
                     "type": "mrkdwn",
