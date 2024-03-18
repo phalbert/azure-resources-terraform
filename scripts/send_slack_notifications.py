@@ -40,7 +40,24 @@ def send_notification(entity, message, api):
 
     if slack_webhook:
         payload = {
-            "text": f"Hello {title}! {message}. {api} team.",
+            # "text": f"Hello {title}! {message}. {api} team.",
+            "blocks": [
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": f"Hi _*{title.lower()}*_ team! :wave: We've made an update to the *{api}*:",
+                    },
+                },
+                {"type": "divider"},
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": f":white_large_square: *Details* \n{message}.",
+                    },
+                },
+            ],
         }
         requests.post(slack_webhook, json=payload)
     else:
@@ -55,7 +72,7 @@ if __name__ == "__main__":
 
     print("Initializing Port client", port_client_id, port_client_secret)
     port_client = PortClient(port_client_id, port_client_secret)
-    
+
     logger.info(f"Fetching entities for query: sending_api {sending_api},")
     search_query = {
         "combinator": "and",
