@@ -109,4 +109,4 @@ jobs:
           baseUrl: https://api.getport.io
           runId: ${{ fromJson(inputs.port_payload).context.runId }}
           logMessage: |
-            GitHub Action completed!
+            Nudged PR reviewers for PR: ${{ env.REPO_INFO }}#${{ env.PR_NUMBER }}
