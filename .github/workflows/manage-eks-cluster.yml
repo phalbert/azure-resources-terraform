@@ -1,4 +1,6 @@
+```yaml
 name: Manage EKS Cluster
+
 on:
   workflow_dispatch:
     inputs:
@@ -47,12 +49,10 @@ jobs:
           baseUrl: https://api.getport.io
           operation: PATCH_RUN
           runId: ${{fromJson(inputs.port_payload).context.runId}}
-          logMessage: Creating EKS cluster to ${{ inputs.cluster_name }}
+          logMessage: "Initiating creation of EKS cluster: ${{ inputs.cluster_name }}."
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
-        # with:
-        #   cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
       - name: Terraform Init
         run: terraform init
@@ -85,4 +85,9 @@ jobs:
           baseUrl: https://api.getport.io
           operation: PATCH_RUN
           runId: ${{fromJson(inputs.port_payload).context.runId}}
-          logMessage: Finished ${{ github.event.inputs.action }} the EKS Cluster ${{ github.event.inputs.cluster_name }}
+          logMessage: "${
+            if eq(github.event.inputs.action, 'apply')
+              'EKS cluster creation has been completed: ${{ github.event.inputs.cluster_name }}.'
+            else
+              'EKS cluster destruction has been completed: ${{ github.event.inputs.cluster_name }}.'
+            }"
