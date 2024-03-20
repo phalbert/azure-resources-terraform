@@ -1,4 +1,3 @@
-```yaml
 name: Manage EKS Cluster
 
 on:
