@@ -63,6 +63,17 @@ jobs:
     - name: Terraform Apply
       run: terraform apply -var cluster_name=${{ github.event.inputs.cluster_name }} -var region=${{ github.event.inputs.region }} -auto-approve
 
+    - name: Create a log message
+      uses: port-labs/port-github-action@v1
+      with:
+        clientId: ${{ secrets.PORT_CLIENT_ID }}
+        clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+        baseUrl: https://api.getport.io
+        operation: PATCH_RUN
+        runId: ${{fromJson(inputs.port_payload).context.runId}}
+        logMessage: Finished creating the EKS Cluster ${{ inputs.cluster_name }}
+
+          
   destroy_cluster:
     runs-on: ubuntu-latest
     
