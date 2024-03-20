@@ -1,108 +1,88 @@
 name: Manage EKS Cluster
 on:
   workflow_dispatch:
-    # Define inputs that are required for the manual trigger
     inputs:
-      clusterName:
-        description: 'Name of the EKS cluster'
+      cluster_name:
+        description: "Name of the EKS cluster"
         required: true
       region:
-        description: 'AWS Region for the cluster'
+        description: "AWS Region for the cluster"
         required: true
       action:
-        description: 'Action to perform (apply/destroy)'
+        description: "Action to perform (apply/destroy)"
         required: true
-        default: 'apply'
+        default: "apply"
       port_payload:
         required: true
-        description:
-            Port's payload, including details for who triggered the action and
-            general context (blueprint, run id, etc...)
+        description: "Port's payload (who triggered, context, etc...)"
         type: string
 
-
 jobs:
-  apply_cluster:
+  manage_cluster: # Combine into a single job
     runs-on: ubuntu-latest
-    # Only run this job if the action input is "apply"
     defaults:
       run:
         shell: bash
-        # We keep Terraform files in the terraform directory.
         working-directory: ./terraform
-        
-    if: ${{ github.event.inputs.action == 'apply' }}
-    steps: 
-    - name: Checkout code
-      uses: actions/checkout@v2
 
-    - name: Create a log message
-      uses: port-labs/port-github-action@v1
-      with:
-        clientId: ${{ secrets.PORT_CLIENT_ID }}
-        clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
-        baseUrl: https://api.getport.io
-        operation: PATCH_RUN
-        runId: ${{fromJson(inputs.port_payload).context.runId}}
-        logMessage: Creating EKS cluster to ${{ fromJson(inputs.cluster_name) }}
-      
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
-      with:
-        cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}  # GitHub secret for Terraform Cloud API token
-      
-    - name: Terraform Init
-      run: terraform init
-      
-    - name: Terraform Format
-      run: terraform fmt
-      
-    - name: Terraform Validate
-      run: terraform validate
-      
-    - name: Terraform Apply
-      run: terraform apply \
-              -var cluster_name=${{ github.event.inputs.cluster_name }} \
-              -var region=${{ github.event.inputs.region }} \
-              -auto-approve
+    if: ${{ github.event.inputs.action == 'apply' || github.event.inputs.action == 'destroy' }}
 
-    - name: Create a log message
-      uses: port-labs/port-github-action@v1
-      with:
-        clientId: ${{ secrets.PORT_CLIENT_ID }}
-        clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
-        baseUrl: https://api.getport.io
-        operation: PATCH_RUN
-        runId: ${{fromJson(inputs.port_payload).context.runId}}
-        logMessage: Finished creating the EKS Cluster ${{ inputs.cluster_name }}
+    env:
+      TF_VAR_port_client_id: ${{ secrets.PORT_CLIENT_ID }}
+      TF_VAR_port_client_secret: ${{ secrets.PORT_CLIENT_SECRET }}
+      TF_VAR_port_run_id: ${{ fromJson(inputs.port_payload).context.runId }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-          
-  destroy_cluster:
-    runs-on: ubuntu-latest
-    
-    # Only run this job if the action input is "destroy"
-    if: ${{ github.event.inputs.action == 'destroy' }}
-    
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-      
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
-      with:
-        cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Create a log message (apply)
+        if: ${{ github.event.inputs.action == 'apply' }}
+        uses: port-labs/port-github-action@v1
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          baseUrl: https://api.getport.io
+          operation: PATCH_RUN
+          runId: ${{fromJson(inputs.port_payload).context.runId}}
+          logMessage: Creating EKS cluster to ${{ fromJson(inputs.cluster_name) }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        # with:
+        #   cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Format
+        run: terraform fmt
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Terraform Apply
+        if: ${{ github.event.inputs.action == 'apply' }}
+        run: terraform apply -auto-approve
+        env:
+          TF_VAR_cluster_name: ${{ github.event.inputs.cluster_name }}
+          TF_VAR_region: ${{ github.event.inputs.region }}
+
+      - name: Terraform Destroy
+        if: ${{ github.event.inputs.action == 'destroy' }}
+        run: terraform destroy -auto-approve
+        env:
+          TF_VAR_cluster_name: ${{ github.event.inputs.cluster_name }}
+          TF_VAR_region: ${{ github.event.inputs.region }}
         
-    - name: Terraform Init
-      run: terraform init
-      
-    - name: Terraform FMT
-      run: terraform fmt
-      
-    - name: Terraform Validate
-      run: terraform validate
-      
-    - name: Terraform Destroy
-      run: terraform destroy \
-              -var cluster_name=${{ github.event.inputs.cluster_name }} \
-              -var region=${{ github.event.inputs.region }} \
-              -auto-approve
+      - name: Create a log message (post-action)
+        uses: port-labs/port-github-action@v1
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          baseUrl: https://api.getport.io
+          operation: PATCH_RUN
+          runId: ${{fromJson(inputs.port_payload).context.runId}}
+          logMessage: Finished ${{ github.event.inputs.action }} the EKS Cluster ${{ inputs.cluster_name }}
