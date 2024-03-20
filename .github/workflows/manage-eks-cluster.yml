@@ -61,7 +61,10 @@ jobs:
       run: terraform validate
       
     - name: Terraform Apply
-      run: terraform apply -var cluster_name=${{ github.event.inputs.cluster_name }} -var region=${{ github.event.inputs.region }} -auto-approve
+      run: terraform apply \
+              -var cluster_name=${{ github.event.inputs.cluster_name }} \
+              -var region=${{ github.event.inputs.region }} \
+              -auto-approve
 
     - name: Create a log message
       uses: port-labs/port-github-action@v1
@@ -99,4 +102,7 @@ jobs:
       run: terraform validate
       
     - name: Terraform Destroy
-      run: terraform destroy -var cluster_name=${{ github.event.inputs.cluster_name }} -var region=${{ github.event.inputs.region }} -auto-approve
+      run: terraform destroy \
+              -var cluster_name=${{ github.event.inputs.cluster_name }} \
+              -var region=${{ github.event.inputs.region }} \
+              -auto-approve
