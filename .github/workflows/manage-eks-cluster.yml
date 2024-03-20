@@ -6,7 +6,7 @@ on:
       clusterName:
         description: 'Name of the EKS cluster'
         required: true
-      awsRegion:
+      region:
         description: 'AWS Region for the cluster'
         required: true
       action:
@@ -28,6 +28,16 @@ jobs:
     steps: 
     - name: Checkout code
       uses: actions/checkout@v2
+
+    - name: Create a log message
+      uses: port-labs/port-github-action@v1
+      with:
+        clientId: ${{ secrets.PORT_CLIENT_ID }}
+        clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+        baseUrl: https://api.getport.io
+        operation: PATCH_RUN
+        runId: ${{fromJson(inputs.port_payload).context.runId}}
+        logMessage: Creating EKS cluster to ${{ fromJson(inputs.cluster_name) }}
       
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v1
@@ -40,15 +50,15 @@ jobs:
       
     - name: Terraform Format
       run: terraform fmt
-      working-directory: Terraform
+      working-directory: terraform
       
     - name: Terraform Validate
       run: terraform validate
-      working-directory: Terraform
+      working-directory: terraform
       
     - name: Terraform Apply
-      run: terraform apply -var clusterName=${{ github.event.inputs.clusterName }} -var awsRegion=${{ github.event.inputs.awsRegion }} -auto-approve
-      working-directory: Terraform
+      run: terraform apply -var clusterName=${{ github.event.inputs.cluster_name }} -var awsRegion=${{ github.event.inputs.region }} -auto-approve
+      working-directory: terraform
 
   destroy_cluster:
     runs-on: ubuntu-latest
@@ -67,16 +77,16 @@ jobs:
         
     - name: Terraform Init
       run: terraform init
-      working-directory: Terraform
+      working-directory: terraform
       
     - name: Terraform FMT
       run: terraform fmt
-      working-directory: Terraform
+      working-directory: terraform
       
     - name: Terraform Validate
       run: terraform validate
-      working-directory: Terraform
+      working-directory: terraform
       
     - name: Terraform Destroy
-      run: terraform destroy -var clusterName=${{ github.event.inputs.clusterName }} -var awsRegion=${{ github.event.inputs.awsRegion }} -auto-approve
-      working-directory: Terraform
+      run: terraform destroy -var clusterName=${{ github.event.inputs.cluster_name }} -var awsRegion=${{ github.event.inputs.region }} -auto-approve
+      working-directory: terraform
