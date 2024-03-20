@@ -23,7 +23,7 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: ./terraform
+        working-directory: ./terraform/create-eks-cluster
 
     if: ${{ github.event.inputs.action == 'apply' || github.event.inputs.action == 'destroy' }}
 
@@ -47,7 +47,7 @@ jobs:
           baseUrl: https://api.getport.io
           operation: PATCH_RUN
           runId: ${{fromJson(inputs.port_payload).context.runId}}
-          logMessage: Creating EKS cluster to ${{ fromJson(inputs.cluster_name) }}
+          logMessage: Creating EKS cluster to ${{ inputs.cluster_name }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
@@ -76,7 +76,7 @@ jobs:
         env:
           TF_VAR_cluster_name: ${{ github.event.inputs.cluster_name }}
           TF_VAR_region: ${{ github.event.inputs.region }}
-        
+
       - name: Create a log message (post-action)
         uses: port-labs/port-github-action@v1
         with:
@@ -85,4 +85,4 @@ jobs:
           baseUrl: https://api.getport.io
           operation: PATCH_RUN
           runId: ${{fromJson(inputs.port_payload).context.runId}}
-          logMessage: Finished ${{ github.event.inputs.action }} the EKS Cluster ${{ inputs.cluster_name }}
+          logMessage: Finished ${{ github.event.inputs.action }} the EKS Cluster ${{ github.event.inputs.cluster_name }}
