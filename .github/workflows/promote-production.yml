@@ -40,8 +40,8 @@ jobs:
         id: set-production
         uses: port-labs/port-github-action@v1
         with:
-          clientId: ${{ secrets.CLIENT_ID }}
-          clientSecret: ${{ secrets.CLIENT_SECRET }}
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
           operation: UPSERT
           identifier:  ${{fromJson(github.event.inputs.port_payload).payload.entity.relations.prod_runtime }}
           blueprint: running_service
