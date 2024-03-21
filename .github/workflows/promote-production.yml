@@ -61,7 +61,7 @@ jobs:
           operation: PATCH_RUN
           runId: ${{ fromJson(github.event.inputs.port_payload).context.runId }}
           logMessage: |
-            'The production image has been updated successfully'
+            The production image has been updated successfully
 
       - name: Inform Port about pull request creation status - Failure
         if: steps.set-production.outcome != 'success'
