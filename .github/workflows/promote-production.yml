@@ -35,7 +35,6 @@ jobs:
           runId: ${{ fromJson(github.event.inputs.port_payload).context.runId }}
           logMessage: "Getting the current staging image..."
 
-
       - name: Set the production image
         id: set-production
         uses: port-labs/port-github-action@v1
@@ -43,13 +42,13 @@ jobs:
           clientId: ${{ secrets.PORT_CLIENT_ID }}
           clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
           operation: UPSERT
-          identifier:  ${{fromJson(github.event.inputs.port_payload).payload.entity.relations.prod_runtime }}
+          identifier: ${{fromJson(github.event.inputs.port_payload).payload.entity.relations.prod_runtime }}
           blueprint: running_service
           runId: ${{ fromJson(github.event.inputs.port_payload).context.runId }}
           logMessage: "Updating the production image..."
           relations: |
             {
-              "image": ${{ fromJson(steps.get-staging.outputs.entity).relations.image }}
+              "image": "${{ fromJson(steps.get-staging.outputs.entity).relations.image }}"
             }
 
       - name: Inform Port about pull request creation status - Success
