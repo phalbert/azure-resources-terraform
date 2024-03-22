@@ -61,7 +61,7 @@ jobs:
           HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
             -X POST \
             -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Authorization: token $GH_TOKEN" \
             -d '{"name": "${{ github.event.inputs.repo_name }}", "private": true, "description": "${{ github.event.inputs.description }}"}' \
             "https://api.github.com/user/repos")
 
@@ -75,8 +75,6 @@ jobs:
               echo "Failed to create repository. HTTP Status: $HTTP_STATUS"
               echo "create_successful=false" >> $GITHUB_ENV
             fi
-
-            
 
 
       - name: Log URL to the repo
