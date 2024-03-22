@@ -48,7 +48,6 @@ jobs:
 
       - name: Run Cookiecutter
         id: cookiecutter
-        if: steps.check_repo.outputs.repo_exists == 'false'
         uses: andrewthetechie/gha-cookiecutter@main
         with:
           # path to what you checked out
@@ -64,7 +63,7 @@ jobs:
 
       - name: Create Repository
         id: create-repo
-        if: steps.check_repo.outputs.repo_exists == 'false'
+        if: ${{ env.repo_exists == 'false' }}
         run: |
           HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
             -X POST \
@@ -83,7 +82,6 @@ jobs:
           fi
 
       - name: Commit files
-        if: steps.check_repo.outputs.repo_exists == 'false'
         working-directory: ./tmp/${{ github.event.inputs.repo_name }}
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
