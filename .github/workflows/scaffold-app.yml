@@ -30,18 +30,25 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Create a log message (pre-action)
-        uses: port-labs/port-github-action@v1
-        with:
-          clientId: ${{ secrets.PORT_CLIENT_ID }}
-          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
-          baseUrl: https://api.getport.io
-          operation: PATCH_RUN
-          runId: ${{fromJson(inputs.port_payload).context.runId}}
-          logMessage: "Starting scaffolding of app: ${{ github.event.inputs.project_name }}"
+      - name: Check if Repository Exists
+        id: check_repo
+        run: |
+          REPO_EXISTS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -X GET \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository_owner }}/${{ github.event.inputs.repo_name }}")
+
+          if [ $REPO_EXISTS -eq 200 ]; then
+            echo "Repository already exists."
+            echo "repo_exists=true" >> $GITHUB_ENV
+          else
+            echo "Repository does not exist."
+            echo "repo_exists=false" >> $GITHUB_ENV
+          fi
 
       - name: Run Cookiecutter
         id: cookiecutter
+        if: steps.check_repo.outputs.repo_exists == 'false'
         uses: andrewthetechie/gha-cookiecutter@main
         with:
           # path to what you checked out
@@ -57,28 +64,26 @@ jobs:
 
       - name: Create Repository
         id: create-repo
+        if: steps.check_repo.outputs.repo_exists == 'false'
         run: |
           HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
             -X POST \
             -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${{ secrets.CREATOR_TOKEN }}" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
             -d '{"name": "${{ github.event.inputs.repo_name }}", "private": true, "description": "${{ github.event.inputs.description }}"}' \
             "https://api.github.com/user/repos")
 
-            echo "HTTP Status: $HTTP_STATUS"
+          echo "HTTP Status: $HTTP_STATUS"
 
-            # Check if HTTP_STATUS is 201 (No Content)
-            if [ $HTTP_STATUS -eq 201 ]; then
-              echo "Repository created successfully."
-              echo "create_successful=true" >> $GITHUB_ENV
-            else
-              echo "Failed to create repository. HTTP Status: $HTTP_STATUS"
-              echo "create_successful=false" >> $GITHUB_ENV
-            fi
-
+          if [ $HTTP_STATUS -eq 201 ]; then
+            echo "Repository created successfully."
+          else
+            echo "Failed to create repository. HTTP Status: $HTTP_STATUS"
+            exit 1
+          fi
 
       - name: Commit files
-        if: ${{ env.create_successful == 'true' }}
+        if: steps.check_repo.outputs.repo_exists == 'false'
         working-directory: ./tmp/${{ github.event.inputs.repo_name }}
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
