@@ -1,0 +1,8 @@
+apiVersion: v0.1
+identifier: {{ cookiecutter.directory_name }}
+title: {{ cookiecutter.project_name }}
+blueprint: service
+properties:
+  language: nodejs
+  readme: file://README.md
+  url: https://github.com/{{ cookiecutter.github_username }}/{{ cookiecutter.directory_name }}

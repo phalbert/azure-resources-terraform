@@ -1,0 +1,7 @@
+{
+    "directory_name": "my-nodejs-project",
+    "project_name": "My Node.js Project",  
+    "description": "A short description of the project",
+    "author_name": "Your Name",
+    "github_username": "your-github-username"
+}
