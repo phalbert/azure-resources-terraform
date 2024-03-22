@@ -83,14 +83,17 @@ jobs:
             exit 1
           fi
 
-      - name: Commit files
-        working-directory: ./tmp/${{ github.event.inputs.repo_name }}
-        run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git add .
-          git commit -m "Initial commit"
-          git push -u origin main
+      - name: Pushes to Repository
+        uses: tech-thinker/push-to-repo@main
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.CREATOR_TOKEN }}
+        with:
+          user-name: "github-actions[bot]"
+          user-email: github-actions[bot]@users.noreply.github.com
+          source-directory: ./tmp/${{ github.event.inputs.repo_name }}
+          destination-github-username: ${{ github.repository_owner }}
+          destination-repository-name: ${{ github.event.inputs.repo_name }}
+          target-branch: main
 
       - name: Create a log message (post-action)
         uses: port-labs/port-github-action@v1
