@@ -6,7 +6,7 @@ on:
       project_name:
         description: "Name of the app"
         required: true
-      project_slug:
+      repo_name:
         description: "Slug of the app"
         required: true
       description:
@@ -49,7 +49,7 @@ jobs:
           outputDir: ./tmp
           cookiecutterValues: '{
             "project_name": "${{ github.event.inputs.project_name }}",
-            "directory_name": "${{ github.event.inputs.project_slug }}",
+            "directory_name": "${{ github.event.inputs.repo_name }}",
             "description": "${{ github.event.inputs.description }},
             "author_name": "Port",
             "github_username": "${{ github.repository_owner }}"
@@ -59,14 +59,14 @@ jobs:
         uses: repo-ctrl/create-repo-action@main
         id: create-repo
         with:
-          repo-name: "${{ github.event.inputs.project_slug }}"
+          repo-name: "${{ github.event.inputs.repo_name }}"
           org-admin-token: "${{ secrets.ORG_ADMIN_TOKEN }}"
 
       - name: Log URL to the repo
         run: echo "The new repo is ${{ steps.create-repo.outputs.repo-url }}"
 
       - name: Commit files
-        working-directory: ./tmp/${{ github.event.inputs.project_slug }}
+        working-directory: ./tmp/${{ github.event.inputs.repo_name }}
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
@@ -80,7 +80,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: main
-          directory: ./tmp/${{ github.event.inputs.project_slug }}
+          directory: ./tmp/${{ github.event.inputs.repo_name }}
 
       - name: Create a log message (post-action)
         uses: port-labs/port-github-action@v1
