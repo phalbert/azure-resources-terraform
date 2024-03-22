@@ -92,7 +92,7 @@ jobs:
           git branch -M main
           git add .
           git commit -m "Initial commit"
-          git remote set-url origin https://github.com/${{ github.repository_owner }}/${{ github.event.inputs.repo_name }}.git
+          git remote set-url origin git@github.com:${{ github.repository_owner }}/${{ github.event.inputs.repo_name }}.git
           git push -u origin main
 
       - name: Create a log message (post-action)
