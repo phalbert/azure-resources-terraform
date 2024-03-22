@@ -9,7 +9,6 @@ on:
       project_slug:
         description: "Slug of the app"
         required: true
-        default: "{{ github.event.inputs.project_name | replace(' ', '-') | lower }}"
       description:
         description: "Description of the app"
         required: true
@@ -65,17 +64,17 @@ jobs:
 
       - name: Log URL to the repo
         run: echo "The new repo is ${{ steps.create-repo.outputs.repo-url }}"
-      
+
       - name: Commit files
         working-directory: ./tmp/${{ github.event.inputs.project_slug }}
         run: |
-            git config --local user.email "github-actions[bot]@users.noreply.github.com"
-            git config --local user.name "github-actions[bot]"
-            git add .
-            git commit -m "Initial commit"
-            git remote add origin ${{ steps.create-repo.outputs.repo-url }}
-            git push -u origin main
-        
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add .
+          git commit -m "Initial commit"
+          git remote add origin ${{ steps.create-repo.outputs.repo-url }}
+          git push -u origin main
+
       - name: Push to GitHub
         uses: ad-m/github-push-action@master
         with:
