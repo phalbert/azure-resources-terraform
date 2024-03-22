@@ -61,7 +61,7 @@ jobs:
           HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
             -X POST \
             -H "Accept: application/vnd.github+json" \
-            -H "Authorization: token $GH_TOKEN" \
+            -H "Authorization: Bearer ${{ secrets.CREATOR_TOKEN }}" \
             -d '{"name": "${{ github.event.inputs.repo_name }}", "private": true, "description": "${{ github.event.inputs.description }}"}' \
             "https://api.github.com/user/repos")
 
@@ -76,9 +76,6 @@ jobs:
               echo "create_successful=false" >> $GITHUB_ENV
             fi
 
-
-      - name: Log URL to the repo
-        run: echo "The new repo is ${{ steps.create-repo.outputs.repo-url }}"
 
       - name: Commit files
         if: ${{ env.create_successful == 'true' }}
