@@ -1,0 +1,94 @@
+name: Manage EKS Cluster
+
+on:
+  workflow_dispatch:
+    inputs:
+      project_name:
+        description: "Name of the app"
+        required: true
+      project_slug:
+        description: "Slug of the app"
+        required: true
+        default: "{{ github.event.inputs.project_name | replace(' ', '-') | lower }}"
+      description:
+        description: "Description of the app"
+        required: true
+        default: "A simple app"
+      port_payload:
+        required: true
+        description: "Port's payload (who triggered, context, etc...)"
+        type: string
+
+jobs:
+  scaffold_app:
+    runs-on: ubuntu-latest
+
+    env:
+      PORT_CLIENT_ID: ${{ secrets.PORT_CLIENT_ID }}
+      PORT_CLIENT_SECRET: ${{ secrets.PORT_CLIENT_SECRET }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Create a log message (pre-action)
+        uses: port-labs/port-github-action@v1
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          baseUrl: https://api.getport.io
+          operation: PATCH_RUN
+          runId: ${{fromJson(inputs.port_payload).context.runId}}
+          logMessage: "Starting scaffolding of app: ${{ github.event.inputs.project_name }}"
+
+      - name: Run Cookiecutter
+        id: cookiecutter
+        uses: andrewthetechie/gha-cookiecutter@main
+        with:
+          # path to what you checked out
+          template: ./app-templates/nodejs
+          outputDir: ./tmp
+          cookiecutterValues: '{
+            "project_name": "${{ github.event.inputs.project_name }}",
+            "directory_name": "${{ github.event.inputs.project_slug }}",
+            "description": "${{ github.event.inputs.description }}
+            "author_name": "Port",
+            "github_username": ${{ github.repository_owner }},
+            }'
+
+      - name: Creating GitHub Repository
+        uses: repo-ctrl/create-repo-action@main
+        id: create-repo
+        with:
+          repo-name: "${{ github.event.inputs.project_slug }}"
+          org-admin-token: "${{ secrets.ORG_ADMIN_TOKEN }}"
+
+      - name: Log URL to the repo
+        run: echo "The new repo is ${{ steps.create-repo.outputs.repo-url }}"
+      
+      - name: Commit files
+        working-directory: ./tmp/${{ github.event.inputs.project_slug }}
+        run: |
+            git config --local user.email "github-actions[bot]@users.noreply.github.com"
+            git config --local user.name "github-actions[bot]"
+            git add .
+            git commit -m "Initial commit"
+            git remote add origin ${{ steps.create-repo.outputs.repo-url }}
+            git push -u origin main
+        
+      - name: Push to GitHub
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: main
+          directory: ./tmp/${{ github.event.inputs.project_slug }}
+
+      - name: Create a log message (post-action)
+        uses: port-labs/port-github-action@v1
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          baseUrl: https://api.getport.io
+          operation: PATCH_RUN
+          runId: ${{fromJson(inputs.port_payload).context.runId}}
+          logMessage: "Finished scaffolding of app: ${{ github.event.inputs.project_name }}"

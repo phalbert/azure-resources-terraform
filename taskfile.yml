@@ -1,6 +1,10 @@
 version: '3'
 
 tasks:
-  act:
+  broadcast:
     cmds:
       - act workflow_dispatch -W '.github/workflows/send-announcement.yml' --container-architecture linux/amd64 -e payload.json --secret-file .env
+
+  scaffold:
+    cmds:
+      - act workflow_dispatch -W '.github/workflows/scaffold-app.yml' --container-architecture linux/amd64 -e ./act/scaffold-app.json --secret-file .env

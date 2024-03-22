@@ -71,19 +71,6 @@ jobs:
           TF_VAR_region: ${{ github.event.inputs.region }}
           TF_VAR_port_run_id: ${{ fromJson(inputs.port_payload).context.runId }}
 
-      - name: Add entity to port.yml file
-        if: ${{ github.event.inputs.action == 'apply' }}
-        run: |
-          echo "identifier: ${{ steps.terraform_apply.outputs.cluster_arn }}" >> ./catalog/port.yml
-          echo "title: ${{ steps.terraform_apply.outputs.cluster_name }}" >> ./port.yml
-          echo "blueprint: ${{ fromJson(inputs.port_payload).context.blueprint }}" >> ./catalog/port.yml
-          echo "properties:" >> ./catalog/port.yml
-          echo "  name: ${{ github.event.inputs.cluster_name }}" >> ./catalog/port.yml
-          echo "  endpoint: ${{ steps.terraform_apply.outputs.cluster_endpoint }}" >> ./catalog/port.yml
-          echo "relations:" >> ./catalog/port.yml
-          echo "  region: ${{ github.event.inputs.region }}" >> ./catalog/port.yml
-
-
       - name: Terraform Destroy
         if: ${{ github.event.inputs.action == 'destroy' }}
         run: terraform destroy -auto-approve
