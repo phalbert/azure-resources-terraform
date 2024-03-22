@@ -88,13 +88,6 @@ jobs:
           git remote add origin https://github.com/${{ github.repository_owner }}/${{ github.event.inputs.repo_name }}.git
           git push -u origin main
 
-      - name: Push to GitHub
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: main
-          directory: ./tmp/${{ github.event.inputs.repo_name }}
-
       - name: Create a log message (post-action)
         uses: port-labs/port-github-action@v1
         with:
