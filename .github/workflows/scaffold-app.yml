@@ -50,7 +50,7 @@ jobs:
           cookiecutterValues: '{
             "project_name": "${{ github.event.inputs.project_name }}",
             "directory_name": "${{ github.event.inputs.repo_name }}",
-            "description": "${{ github.event.inputs.description }},
+            "description": "${{ github.event.inputs.description }}",
             "author_name": "Port",
             "github_username": "${{ github.repository_owner }}"
             }'
