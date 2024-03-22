@@ -55,24 +55,42 @@ jobs:
             "github_username": "${{ github.repository_owner }}"
             }'
 
-      - name: Creating GitHub Repository
-        uses: repo-ctrl/create-repo-action@main
+      - name: Create Repository
         id: create-repo
-        with:
-          repo-name: "${{ github.event.inputs.repo_name }}"
-          org-admin-token: "${{ secrets.CREATOR_TOKEN }}"
+        run: |
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -d '{"name": "${{ github.event.inputs.repo_name }}", "private": true, "description": "${{ github.event.inputs.description }}"}' \
+            "https://api.github.com/user/repos")
+
+            echo "HTTP Status: $HTTP_STATUS"
+
+            # Check if HTTP_STATUS is 204 (No Content)
+            if [ $HTTP_STATUS -eq 204 ]; then
+              echo "Repository created successfully."
+              echo "create_successful=true" >> $GITHUB_ENV
+            else
+              echo "Failed to create repository. HTTP Status: $HTTP_STATUS"
+              echo "create_successful=false" >> $GITHUB_ENV
+            fi
+
+            
+
 
       - name: Log URL to the repo
         run: echo "The new repo is ${{ steps.create-repo.outputs.repo-url }}"
 
       - name: Commit files
+        if: ${{ env.create_successful == 'true' }}
         working-directory: ./tmp/${{ github.event.inputs.repo_name }}
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git add .
           git commit -m "Initial commit"
-          git remote add origin ${{ steps.create-repo.outputs.repo-url }}
+          git remote add origin https://github.com/${{ github.repository_owner }}/${{ github.event.inputs.repo_name }}.git
           git push -u origin main
 
       - name: Push to GitHub
