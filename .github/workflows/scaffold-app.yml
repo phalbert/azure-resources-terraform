@@ -67,8 +67,8 @@ jobs:
 
             echo "HTTP Status: $HTTP_STATUS"
 
-            # Check if HTTP_STATUS is 204 (No Content)
-            if [ $HTTP_STATUS -eq 204 ]; then
+            # Check if HTTP_STATUS is 201 (No Content)
+            if [ $HTTP_STATUS -eq 201 ]; then
               echo "Repository created successfully."
               echo "create_successful=true" >> $GITHUB_ENV
             else
