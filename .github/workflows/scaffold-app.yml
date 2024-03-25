@@ -87,9 +87,9 @@ jobs:
         working-directory: ./tmp/${{ github.event.inputs.repo_name }}
         run: |
           sudo chmod -R 777 .
+          git init
           git config user.name "GitHub Actions Bot"
           git config user.email "<>"
-          git init
           git add .
           git commit -m "Initial commit"
           git branch -M main
