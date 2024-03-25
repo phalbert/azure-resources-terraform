@@ -27,6 +27,16 @@ jobs:
       PORT_CLIENT_SECRET: ${{ secrets.PORT_CLIENT_SECRET }}
 
     steps:
+      - name: Create a log message (post-action)
+        uses: port-labs/port-github-action@v1
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          baseUrl: https://api.getport.io
+          operation: PATCH_RUN
+          runId: ${{fromJson(inputs.port_payload).context.runId}}
+          logMessage: "Starting scaffolding of app: ${{ github.event.inputs.project_name }}"
+
       - name: Checkout code
         uses: actions/checkout@v2
 
@@ -63,6 +73,17 @@ jobs:
             "github_username": "${{ github.repository_owner }}"
             }'
 
+      - name: Create a log message (post-action)
+        uses: port-labs/port-github-action@v1
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          baseUrl: https://api.getport.io
+          operation: PATCH_RUN
+          runId: ${{fromJson(inputs.port_payload).context.runId}}
+          logMessage: "Creating repository for app: ${{ github.event.inputs.project_name }}"
+      
+
       - name: Create Repository
         id: create-repo
         if: ${{ env.repo_exists == 'false' }}
@@ -82,6 +103,17 @@ jobs:
             echo "Failed to create repository. HTTP Status: $HTTP_STATUS"
             exit 1
           fi
+
+      - name: Create a log message (post-action)
+        uses: port-labs/port-github-action@v1
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          baseUrl: https://api.getport.io
+          operation: PATCH_RUN
+          runId: ${{fromJson(inputs.port_payload).context.runId}}
+          logMessage: "Commiting new app files: ${{ github.event.inputs.project_name }}"
+        
 
       - name: Commit files
         working-directory: ./tmp/${{ github.event.inputs.repo_name }}
