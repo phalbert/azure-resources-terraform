@@ -87,12 +87,12 @@ jobs:
         working-directory: ./tmp/${{ github.event.inputs.repo_name }}
         run: |
           sudo chmod -R 777 .
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
+          git config user.name "GitHub Actions Bot"
+          git config user.email "<>"
           git init
-          git branch -M main
           git add .
           git commit -m "Initial commit"
+          git branch -M main
           git remote set-url origin https://${{ github.repository_owner }}:${{ secrets.CREATOR_TOKEN }}@github.com/${{ github.repository_owner }}/${{ github.event.inputs.repo_name }}.git
           git push -u origin main
       
