@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ cookiecutter.directory_name }}-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: {{ cookiecutter.directory_name }}
+  template:
+    metadata:
+      labels:
+        app: {{ cookiecutter.directory_name }}
+    spec:
+      containers:
+        - name: {{ cookiecutter.directory_name }}-container
+          image: {{ cookiecutter.directory_name }}:latest
+          ports:
+            - containerPort: 3000

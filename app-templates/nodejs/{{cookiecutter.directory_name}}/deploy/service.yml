@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ cookiecutter.directory_name }}-service
+spec:
+  selector:
+    app: {{ cookiecutter.directory_name }}
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
+  type: LoadBalancer
