@@ -120,7 +120,6 @@ resource "aws_eks_addon" "ebs-csi" {
 
 # Port resources
 resource "port_entity" "eks_cluster" {
-  count      = length(module.eks.cluster_endpoint) > 0 ? 1 : 0
   identifier = module.eks.cluster_arn
   title      = module.eks.cluster_name
   blueprint  = "eks"

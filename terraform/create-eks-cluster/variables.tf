@@ -24,13 +24,3 @@ variable "port_run_id" {
   description = "The runID of the action run that created the entity"
   default     = ""
 }
-
-variable "port_client_id" {
-  type        = string
-  description = "The Port client ID"
-}
-
-variable "port_client_secret" {
-  type        = string
-  description = "The Port client secret"
-}

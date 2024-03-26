@@ -47,3 +47,4 @@ template-assets
 
 venv
 .DS_Store
+*.plan
