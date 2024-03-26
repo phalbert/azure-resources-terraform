@@ -3,5 +3,6 @@
     "project_name": "My Node.js Project",  
     "description": "A short description of the project",
     "author_name": "Your Name",
-    "github_username": "your-github-username"
+    "github_username": "your-github-username",
+    "image_repository": "your-docker-image-repository"
 }
