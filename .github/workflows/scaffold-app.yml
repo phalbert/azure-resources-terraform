@@ -9,6 +9,10 @@ on:
       repo_name:
         description: "Slug of the app"
         required: true
+      template:
+          description: "Template to use for the app"
+          required: false
+          default: "nodejs"
       description:
         description: "Description of the app"
         required: true
@@ -90,7 +94,7 @@ jobs:
         uses: andrewthetechie/gha-cookiecutter@main
         with:
           # path to what you checked out
-          template: ./app-templates/nodejs
+          template: ./app-templates/${{ github.event.inputs.template }}
           outputDir: ./tmp
           cookiecutterValues: '{
             "project_name": "${{ github.event.inputs.project_name }}",
