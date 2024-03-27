@@ -3,11 +3,14 @@ name: Resize Autoscaling Group
 on: 
   workflow_dispatch:
     inputs:
-      asg_name:
-        description: 'Name of the Auto Scaling Group'
-        required: true
       desired_capacity:
         description: 'New desired capacity'
+        required: true
+      min_size:
+        description: 'Minimum size of the Auto Scaling Group'
+        required: true
+      max_size:
+        description: 'Maximum size of the Auto Scaling Group'
         required: true
       port_payload:
         required: true
@@ -37,8 +40,13 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Resize Auto Scaling Group
-        run: aws autoscaling update-auto-scaling-group --auto-scaling-group-name ${{ github.event.inputs.asg_name }} --desired-capacity ${{ github.event.inputs.desired_capacity }} 
-      
+        run: |
+            aws autoscaling update-auto-scaling-group \
+                --auto-scaling-group-name ${{ fromJson(inputs.port_payload).payload.entity.title }} \
+                --desired-capacity ${{ github.event.inputs.desired_capacity }} \
+                --min-size ${{ github.event.inputs.min_size }} \
+                --max-size ${{ github.event.inputs.max_size }} 
+    
       - name: Create a log message
         uses: port-labs/port-github-action@v1
         with:
