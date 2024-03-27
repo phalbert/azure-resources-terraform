@@ -33,6 +33,7 @@ jobs:
       uses: actions/checkout@v2
       with:
         repository: ${{ env.REPO_OWNER }}/${{ env.REPO_NAME }}
+        token: ${{ secrets.CREATOR_TOKEN }}
 
     - name: Get short commit ID
       id: get-commit-id
