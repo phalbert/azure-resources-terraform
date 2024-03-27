@@ -109,8 +109,8 @@ jobs:
     - name: Deploy to EKS
       run: |
         aws eks update-kubeconfig --name ${{ env.CLUSTER_NAME }} --region ${{ env.CLUSTER_REGION }}
-        kubectl apply -f manifests/deployment.yaml
-        kubectl apply -f manifests/service.yaml
+        kubectl apply -f manifests/deployment.yml
+        kubectl apply -f manifests/service.yml
 
     - name: Notify Port
       uses: port-labs/port-github-action@v1
