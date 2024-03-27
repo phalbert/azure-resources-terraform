@@ -58,6 +58,33 @@ jobs:
             echo "repo_exists=false" >> $GITHUB_ENV
           fi
 
+          - name: Create a log message (post-action)
+          uses: port-labs/port-github-action@v1
+          with:
+            clientId: ${{ secrets.PORT_CLIENT_ID }}
+            clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+            baseUrl: https://api.getport.io
+            operation: PATCH_RUN
+            runId: ${{fromJson(inputs.port_payload).context.runId}}
+            logMessage: "Creating ECR repository: ${{ github.event.inputs.repo_name }}"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ secrets.AWS_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Login to AWS ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Create ECR Repository
+        id: create-ecr-repo
+        run: |
+          aws ecr create-repository --repository-name "${{ github.event.inputs.repo_name }}"
+          echo "ECR Repository created successfully."
+
       - name: Run Cookiecutter
         id: cookiecutter
         uses: andrewthetechie/gha-cookiecutter@main
@@ -71,6 +98,7 @@ jobs:
             "description": "${{ github.event.inputs.description }}",
             "author_name": "Port",
             "github_username": "${{ github.repository_owner }}"
+            "image_repository": "${{ steps.create-ecr-repo.outputs.repositoryUri }}"
             }'
 
       - name: Create a log message (post-action)
@@ -83,7 +111,7 @@ jobs:
           runId: ${{fromJson(inputs.port_payload).context.runId}}
           logMessage: "Creating repository for app: ${{ github.event.inputs.project_name }}"
 
-      - name: Create Repository
+      - name: Create GitHub Repository
         id: create-repo
         if: ${{ env.repo_exists == 'false' }}
         run: |
@@ -125,33 +153,6 @@ jobs:
           git branch -M main
           git remote add origin https://${{ github.repository_owner }}:${{ secrets.CREATOR_TOKEN }}@github.com/${{ github.repository_owner }}/${{ github.event.inputs.repo_name }}.git
           git push -u origin main
-
-      - name: Create a log message (post-action)
-        uses: port-labs/port-github-action@v1
-        with:
-          clientId: ${{ secrets.PORT_CLIENT_ID }}
-          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
-          baseUrl: https://api.getport.io
-          operation: PATCH_RUN
-          runId: ${{fromJson(inputs.port_payload).context.runId}}
-          logMessage: "Creating ECR repository: ${{ github.event.inputs.repo_name }}"
-      
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-region: ${{ secrets.AWS_REGION }}
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
-      - name: Login to AWS ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
-
-      - name: Create ECR Repository
-        id: create-ecr-repo
-        run: |
-          aws ecr create-repository --repository-name "${{ github.event.inputs.repo_name }}"
-          echo "ECR Repository created successfully."
 
       - name: Create a log message (post-action)
         uses: port-labs/port-github-action@v1
