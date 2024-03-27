@@ -97,7 +97,7 @@ jobs:
               "directory_name": "${{ github.event.inputs.repo_name }}",
               "description": "${{ github.event.inputs.description }}",
               "author_name": "Port",
-              "github_username": "${{ github.repository_owner }}"
+              "github_username": "${{ github.repository_owner }}",
               "image_repository": "${{ steps.create-ecr-repo.outputs.repositoryUri }}"
             }'
 
