@@ -56,7 +56,7 @@ jobs:
     - name: Build and push Docker image
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: ${{ env.repo_name }}
+        ECR_REPOSITORY: ${{ env.REPO_NAME }}
       run: |
         # Build and push image with short commit ID and triggered by as tags
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_SHORT .
