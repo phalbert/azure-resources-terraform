@@ -82,8 +82,9 @@ jobs:
       - name: Create ECR Repository
         id: create-ecr-repo
         run: |
-          aws ecr create-repository --repository-name "${{ github.event.inputs.repo_name }}"
-          echo "ECR Repository created successfully."
+            repositoryUri=$(aws ecr create-repository --repository-name "${{ github.event.inputs.repo_name }}" --output json | jq -r '.repository.repositoryUri')
+            echo "REPOSITORY_URI=$repositoryUri" >> $GITHUB_ENV
+
 
       - name: Run Cookiecutter
         id: cookiecutter
@@ -98,7 +99,7 @@ jobs:
               "description": "${{ github.event.inputs.description }}",
               "author_name": "Port",
               "github_username": "${{ github.repository_owner }}",
-              "image_repository": "${{ steps.create-ecr-repo.outputs.repositoryUri }}"
+              "image_repository": "${{ env.REPOSITORY_URI }}"
             }'
 
       - name: Create a log message (post-action)
