@@ -3,17 +3,8 @@ name: Build and Deploy Image to EKS
 on:
   workflow_dispatch:
     inputs:
-      image_repo:
-        description: 'Repository URL'
-        required: true
-      dockerfile:
-        description: 'Path to Dockerfile'
-        required: true
-      cluster_name:
+      cluster:
         description: 'Deployment cluster'
-        required: true
-      cluster_region:
-        description: 'Deployment cluster region'
         required: true
       port_payload:
         required: true
@@ -37,6 +28,15 @@ jobs:
         echo "REPO_OWNER=$repo_owner" >> $GITHUB_ENV
         echo "REPO_NAME=$repo_name" >> $GITHUB_ENV
       shell: bash
+
+    - name: Extract cluster name and region from arn
+      run: |
+        cluster_arn=$(echo "${{ github.event.inputs.cluster }}" | awk -F/ '{print $NF}')
+        cluster_name=$(echo "${cluster_arn}" | awk -F: '{print $NF}')
+        cluster_region=$(echo "${cluster_arn}" | awk -F: '{print $4}')
+
+        echo "CLUSTER_NAME=$cluster_name" >> $GITHUB_ENV
+        echo "CLUSTER_REGION=$cluster_region" >> $GITHUB_ENV
   
     - name: Checkout repository
       uses: actions/checkout@v2
@@ -106,7 +106,7 @@ jobs:
 
     - name: Deploy to EKS
       run: |
-        aws eks update-kubeconfig --name ${{ github.event.inputs.cluster_name }} --region ${{ github.event.inputs.cluster_region }}
+        aws eks update-kubeconfig --name ${{ env.CLUSTER_NAME }} --region ${{ env.CLUSTER_REGION }}
         kubectl apply -f manifests/deployment.yaml
         kubectl apply -f manifests/service.yaml
 
