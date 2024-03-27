@@ -41,14 +41,11 @@ jobs:
 
       - name: Resize Auto Scaling Group
         run: |
-            response=$(aws autoscaling update-auto-scaling-group \
-            --auto-scaling-group-name ${{ fromJson(inputs.port_payload).payload.entity.title }} \
-            --desired-capacity ${{ github.event.inputs.desired_capacity }} \
-            --min-size ${{ github.event.inputs.minimum_capacity }} \
-            --max-size ${{ github.event.inputs.maximum_capacity }} )
-
-            echo "SCALING_RESULT=$response" >> $GITHUB_ENV
-
+            aws autoscaling update-auto-scaling-group \
+                --auto-scaling-group-name ${{ fromJson(inputs.port_payload).payload.entity.title }} \
+                --desired-capacity ${{ github.event.inputs.desired_capacity }} \
+                --min-size ${{ github.event.inputs.minimum_capacity }} \
+                --max-size ${{ github.event.inputs.maximum_capacity }} 
     
       - name: Create a log message
         uses: port-labs/port-github-action@v1
@@ -58,6 +55,4 @@ jobs:
           baseUrl: https://api.getport.io
           operation: PATCH_RUN
           runId: ${{fromJson(inputs.port_payload).context.runId}}
-          logMessage: |
-            Result of scaling operation: ${{ env.SCALING_RESULT }}
-            Finished action run of EC2 Auto Scaling Group ${{ fromJson(inputs.port_payload).payload.entity.title }} to ${{ github.event.inputs.desired_capacity }} instances
+          logMessage: Resized EC2 Auto Scaling Group ${{ fromJson(inputs.port_payload).payload.entity.title }} to ${{ github.event.inputs.desired_capacity }} instances
