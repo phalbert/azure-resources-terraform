@@ -82,9 +82,8 @@ jobs:
       - name: Create ECR Repository
         id: create-ecr-repo
         run: |
-            repositoryUri=$(aws ecr create-repository --repository-name "${{ github.event.inputs.repo_name }}" --output json | jq -r '.repository.repositoryUri')
-            echo "REPOSITORY_URI=$repositoryUri" >> $GITHUB_ENV
-
+          repositoryUri=$(aws ecr create-repository --repository-name "${{ github.event.inputs.repo_name }}" --output json | jq -r '.repository.repositoryUri')
+          echo "ECR_REPOSITORY_URI=$repositoryUri" >> $GITHUB_ENV
 
       - name: Run Cookiecutter
         id: cookiecutter
@@ -94,12 +93,12 @@ jobs:
           template: ./app-templates/nodejs
           outputDir: ./tmp
           cookiecutterValues: '{
-              "project_name": "${{ github.event.inputs.project_name }}",
-              "directory_name": "${{ github.event.inputs.repo_name }}",
-              "description": "${{ github.event.inputs.description }}",
-              "author_name": "Port",
-              "github_username": "${{ github.repository_owner }}",
-              "image_repository": "${{ env.REPOSITORY_URI }}"
+            "project_name": "${{ github.event.inputs.project_name }}",
+            "directory_name": "${{ github.event.inputs.repo_name }}",
+            "description": "${{ github.event.inputs.description }}",
+            "author_name": "Port",
+            "github_username": "${{ github.repository_owner }}",
+            "image_repository": "${{ env.ECR_REPOSITORY_URI }}"
             }'
 
       - name: Create a log message (post-action)
