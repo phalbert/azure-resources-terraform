@@ -1,0 +1,122 @@
+name: Build and Deploy Image to EKS
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_repo:
+        description: 'Repository URL'
+        required: true
+      dockerfile:
+        description: 'Path to Dockerfile'
+        required: true
+      cluster_name:
+        description: 'Deployment cluster'
+        required: true
+      cluster_region:
+        description: 'Deployment cluster region'
+        required: true
+      port_payload:
+        required: true
+        description: "Port's payload, including details for who triggered the action and general context (blueprint, run id, etc...)"
+        type: string
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    env:
+      REPO_URL: ${{ fromJson(inputs.port_payload).payload.entity.properties.url }}
+      TRIGGERED_BY: ${{ fromJson(inputs.port_payload).trigger.by.user.email || github.actor }}
+
+    steps:
+    - name: Extract repository owner and name
+      run: |
+        repo_owner=$(echo "${REPO_URL}" | awk -F/ '{print $4}')
+        repo_name=$(echo "${REPO_URL}" | awk -F/ '{print $5}')
+
+        echo "REPO_OWNER=$repo_owner" >> $GITHUB_ENV
+        echo "REPO_NAME=$repo_name" >> $GITHUB_ENV
+      shell: bash
+  
+    - name: Checkout repository
+      uses: actions/checkout@v2
+      with:
+        repository: ${{ env.REPO_OWNER }}/${{ env.REPO_NAME }}
+
+    - name: Get short commit ID
+      id: get-commit-id
+      run: |
+        echo "COMMIT_SHORT=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+        echo "COMMIT_SHA=$(git rev-parse HEAD)" >> $GITHUB_ENV
+      shell: bash
+    
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-region: ${{ secrets.AWS_REGION }}
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+    - name: Login to AWS ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+
+    - name: Build and push Docker image
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        ECR_REPOSITORY: ${{ env.repo_name }}
+      run: |
+        # Build and push image with short commit ID and triggered by as tags
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_SHORT .
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_SHORT
+
+        # Tag image with commit ID and push
+        docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_SHORT $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_SHA
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_SHA
+
+        # Tag image with triggered by and push
+        docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_SHORT $ECR_REGISTRY/$ECR_REPOSITORY:actor-${TRIGGERED_BY//[^a-zA-Z0-9]/-}
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:actor-${TRIGGERED_BY//[^a-zA-Z0-9]/-}
+
+        # Tag image with PR ID and push
+        if [ "${{ github.event_name }}" == "pull_request" ]; then
+          PR_ID=$(echo "${{ github.event.pull_request.number }}" | tr -d '/')
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_SHORT $ECR_REGISTRY/$ECR_REPOSITORY:pr-$PR_ID
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:pr-$PR_ID
+        fi
+
+        # Tag image with workflow ID and push
+        docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_SHORT $ECR_REGISTRY/$ECR_REPOSITORY:build-${{ github.run_id }}
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:build-${{ github.run_id }}
+        
+        # Tag image with latest and push
+        docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_SHORT $ECR_REGISTRY/$ECR_REPOSITORY:latest
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+    - name: Notify Port
+      uses: port-labs/port-github-action@v1
+      with:
+        clientId: ${{ secrets.PORT_CLIENT_ID }}
+        clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+        operation: PATCH_RUN
+        baseUrl: https://api.getport.io
+        runId: ${{ fromJson(inputs.port_payload).context.runId }}
+        logMessage: |
+          Built and pushed image to ECR
+
+    - name: Deploy to EKS
+      run: |
+        aws eks update-kubeconfig --name ${{ github.event.inputs.cluster_name }} --region ${{ github.event.inputs.cluster_region }}
+        kubectl apply -f manifests/deployment.yaml
+        kubectl apply -f manifests/service.yaml
+
+    - name: Notify Port
+      uses: port-labs/port-github-action@v1
+      with:
+        clientId: ${{ secrets.PORT_CLIENT_ID }}
+        clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+        operation: PATCH_RUN
+        baseUrl: https://api.getport.io
+        runId: ${{ fromJson(inputs.port_payload).context.runId }}
+        logMessage: |
+            Deployed to EKS 
