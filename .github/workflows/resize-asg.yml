@@ -6,10 +6,10 @@ on:
       desired_capacity:
         description: 'New desired capacity'
         required: true
-      min_size:
+      minimum_capacity:
         description: 'Minimum size of the Auto Scaling Group'
         required: true
-      max_size:
+      maximum_capacity:
         description: 'Maximum size of the Auto Scaling Group'
         required: true
       port_payload:
