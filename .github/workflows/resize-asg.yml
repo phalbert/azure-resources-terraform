@@ -55,4 +55,4 @@ jobs:
           baseUrl: https://api.getport.io
           operation: PATCH_RUN
           runId: ${{fromJson(inputs.port_payload).context.runId}}
-          logMessage: Resized EC2 Auto Scaling Group ${{ github.event.inputs.asg_name }} to ${{ github.event.inputs.desired_capacity }} instances
+          logMessage: Resized EC2 Auto Scaling Group ${{ fromJson(inputs.port_payload).payload.entity.title }} to ${{ github.event.inputs.desired_capacity }} instances
