@@ -1,0 +1,46 @@
+name: Reboot EC2 Instance
+
+on:
+  workflow_dispatch: # Trigger this workflow manually
+    inputs:
+      instance_id:
+        description: "ID of the EC2 instance to reboot"
+        required: true
+      port_payload:
+        required: true
+        description: "Port's payload, including details for who triggered the action and general context (blueprint, run id, etc...)"
+        type: string
+
+jobs:
+  reboot-instance:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create a log message (post-action)
+        uses: port-labs/port-github-action@v1
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          baseUrl: https://api.getport.io
+          operation: PATCH_RUN
+          runId: ${{fromJson(inputs.port_payload).context.runId}}
+          logMessage: Configuring AWS credentials and reboot EC2 instance with ID ${{ github.event.inputs.instance_id }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Reboot EC2 instance
+        run: aws ec2 reboot-instances --instance-ids ${{ github.event.inputs.instance_id }}
+
+      - name: Create a log message (post-action)
+        uses: port-labs/port-github-action@v1
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          baseUrl: https://api.getport.io
+          operation: PATCH_RUN
+          runId: ${{fromJson(inputs.port_payload).context.runId}}
+          logMessage: EC2 instance with ID ${{ github.event.inputs.instance_id }} rebooted successfully
