@@ -100,7 +100,7 @@ jobs:
       run: |
         cluster_arn=$(echo "${{ github.event.inputs.cluster }}" | awk -F/ '{print $NF}')
         cluster_name=$(echo "${cluster_arn}" | awk -F: '{print $NF}')
-        cluster_region=$(echo "${cluster_arn}" | awk -F: '{print $4}')
+        cluster_region=$(echo "${{ github.event.inputs.cluster }}" | awk -F: '{print $4}')
 
         echo "CLUSTER_NAME=$cluster_name" >> $GITHUB_ENV
         echo "CLUSTER_REGION=$cluster_region" >> $GITHUB_ENV
