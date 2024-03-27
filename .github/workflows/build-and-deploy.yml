@@ -29,15 +29,6 @@ jobs:
         echo "REPO_NAME=$repo_name" >> $GITHUB_ENV
       shell: bash
 
-    - name: Extract cluster name and region from arn
-      run: |
-        cluster_arn=$(echo "${{ github.event.inputs.cluster }}" | awk -F/ '{print $NF}')
-        cluster_name=$(echo "${cluster_arn}" | awk -F: '{print $NF}')
-        cluster_region=$(echo "${cluster_arn}" | awk -F: '{print $4}')
-
-        echo "CLUSTER_NAME=$cluster_name" >> $GITHUB_ENV
-        echo "CLUSTER_REGION=$cluster_region" >> $GITHUB_ENV
-  
     - name: Checkout repository
       uses: actions/checkout@v2
       with:
@@ -103,6 +94,16 @@ jobs:
         runId: ${{ fromJson(inputs.port_payload).context.runId }}
         logMessage: |
           Built and pushed image to ECR
+
+    - name: Extract cluster name and region from arn
+      run: |
+        cluster_arn=$(echo "${{ github.event.inputs.cluster }}" | awk -F/ '{print $NF}')
+        cluster_name=$(echo "${cluster_arn}" | awk -F: '{print $NF}')
+        cluster_region=$(echo "${cluster_arn}" | awk -F: '{print $4}')
+
+        echo "CLUSTER_NAME=$cluster_name" >> $GITHUB_ENV
+        echo "CLUSTER_REGION=$cluster_region" >> $GITHUB_ENV
+      
 
     - name: Deploy to EKS
       run: |
