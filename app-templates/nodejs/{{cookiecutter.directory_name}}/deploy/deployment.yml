@@ -14,6 +14,6 @@ spec:
     spec:
       containers:
         - name: {{ cookiecutter.directory_name }}-container
-          image: {{ cookiecutter.image_repository }}/{{ cookiecutter.directory_name }}:latest
+          image: {{ cookiecutter.image_repository }}:latest
           ports:
             - containerPort: 3000
