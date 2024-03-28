@@ -1,0 +1,24 @@
+name: Azure Exporter Workflow
+
+# This workflow responsible for running Azure exporter.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run-integration:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: port-labs/ocean-sail@v1
+        env:
+          AZURE_CLIENT_ID: ${{ secrets.OCEAN__AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.OCEAN__AZURE_CLIENT_SECRET }}
+          AZURE_TENANT_ID: ${{ secrets.OCEAN__AZURE_TENANT_ID }}
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.OCEAN__AZURE_SUBSCRIPTION_ID }}
+        with:
+          type: "azure"
+          port_client_id: ${{ secrets.OCEAN__PORT__CLIENT_ID }}
+          port_client_secret: ${{ secrets.OCEAN__PORT__CLIENT_SECRET }}
+          config: |
+            subscriptionId: ${{ secrets.OCEAN__AZURE_SUBSCRIPTION_ID }} 
