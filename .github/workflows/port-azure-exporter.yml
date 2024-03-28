@@ -12,13 +12,13 @@ jobs:
     steps:
       - uses: port-labs/ocean-sail@v1
         env:
-          AZURE_CLIENT_ID: ${{ secrets.OCEAN__AZURE_CLIENT_ID }}
-          AZURE_CLIENT_SECRET: ${{ secrets.OCEAN__AZURE_CLIENT_SECRET }}
-          AZURE_TENANT_ID: ${{ secrets.OCEAN__AZURE_TENANT_ID }}
-          AZURE_SUBSCRIPTION_ID: ${{ secrets.OCEAN__AZURE_SUBSCRIPTION_ID }}
+          AZURE_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+          AZURE_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
         with:
           type: "azure"
           port_client_id: ${{ secrets.OCEAN__PORT__CLIENT_ID }}
           port_client_secret: ${{ secrets.OCEAN__PORT__CLIENT_SECRET }}
           config: |
-            subscriptionId: ${{ secrets.OCEAN__AZURE_SUBSCRIPTION_ID }} 
+            subscriptionId: ${{ secrets.ARM_SUBSCRIPTION_ID }} 
