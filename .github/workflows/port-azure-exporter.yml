@@ -18,7 +18,7 @@ jobs:
           AZURE_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
         with:
           type: "azure"
-          port_client_id: ${{ secrets.OCEAN__PORT__CLIENT_ID }}
-          port_client_secret: ${{ secrets.OCEAN__PORT__CLIENT_SECRET }}
+          port_client_id: ${{ secrets.PORT_CLIENT_ID }}
+          port_client_secret: ${{ secrets.PORT_CLIENT_SECRET }}
           config: |
             subscriptionId: ${{ secrets.ARM_SUBSCRIPTION_ID }} 
