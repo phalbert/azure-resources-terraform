@@ -46,7 +46,7 @@ def send_notification(entity, message, api):
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": f"Hi _*{title.lower()}*_ team! :wave: We've made an update to the *{api}*:",
+                        "text": f"Hi _*{title.lower()}*_ team! :wave: We've made an update to the *<https://app.getport.io/apiEntity?identifier={api}|{api}>*:",
                     },
                 },
                 {"type": "divider"},
