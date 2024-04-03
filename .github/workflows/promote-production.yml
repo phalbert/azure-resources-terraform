@@ -64,9 +64,6 @@ jobs:
               "image": "${{ env.STAGING_IMAGE }}"
             }
 
-      - name: Set Production manifest path in env
-        run: echo "PRODUCTION_MANIFEST_PATH=${{ fromJson(steps.set-production.outputs.entity).gitPath }}" >> $GITHUB_ENV
-
       - name: Inform Port about pull request creation status - Success
         if: steps.set-production.outcome == 'success'
         uses: port-labs/port-github-action@v1
@@ -92,6 +89,9 @@ jobs:
           runId: ${{ fromJson(inputs.port_payload).context.runId }}
           logMessage: "Getting the current production manifest runtime path..."
 
+      - name: Set Production manifest path in env
+        run: echo "PRODUCTION_MANIFEST_PATH=${{ fromJson(steps.get-prod-runtime.outputs.entity).gitPath }}" >> $GITHUB_ENV
+  
       - name: Send pull-request
         if: steps.set-production.outcome == 'success'
         id: send-pr
