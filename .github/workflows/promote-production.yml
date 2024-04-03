@@ -85,6 +85,7 @@ jobs:
           echo "REPO_INFO=$repo_info" >> $GITHUB_ENV
 
       - name: Send pull-request
+        id: send-pr
         run: |
           STAGING_IMAGE=${{ fromJson(steps.get-staging.outputs.entity).relations.image }}
           REPOSITORY=${{ env.REPO_INFO }}
