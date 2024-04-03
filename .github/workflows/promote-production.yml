@@ -92,7 +92,7 @@ jobs:
       - name: Set Production manifest path in env
         run: echo "PRODUCTION_MANIFEST_PATH=${{ fromJson(steps.get-prod-runtime.outputs.entity).properties.gitPath }}" >> $GITHUB_ENV
   
-      - name: Send pull-request
+      - name: Change the production image in the manifest file
         if: steps.set-production.outcome == 'success'
         id: send-pr
         run: |
@@ -128,20 +128,7 @@ jobs:
           git commit -m "chore: update production image to $STAGING_IMAGE"
           git push origin $BRANCH_NAME
 
-          # Store the PAT in a file that can be accessed by the
-          # GitHub CLI.
-          # echo "${{ secrets.CREATOR_TOKEN }}" > token.txt
-
-          # Authorize GitHub CLI for the current repository and
-          # create a pull-requests containing the updates.
-          # gh auth login --with-token < token.txt
-          # gh pr create \
-          #   --body "" \
-          #   --title "chore: update production image to $STAGING_IMAGE" \
-          #   --head "$BRANCH_NAME" \
-          #   --base "$DEFAULT_BRANCH"
-
-      - name: Create Pull Request with curl on GitHubAPI
+      - name: Create Pull Request using GitHub API
         if: steps.set-production.outcome == 'success'
         run: |
           STAGING_IMAGE=${{ env.STAGING_IMAGE }}
