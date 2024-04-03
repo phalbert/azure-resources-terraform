@@ -79,7 +79,7 @@ jobs:
       - name: Extract Repository and PR Number
         id: extract_info
         run: |
-          link="${{ fromJson(inputs.port_payload).payload.entity.properties.link }}"
+          link="${{ fromJson(inputs.port_payload).payload.entity.properties.url }}"
           repo_info=$(echo "$link" | sed 's|https://github.com/||' | awk -F'/' '{print $1 "/" $2}')
 
           echo "REPO_INFO=$repo_info" >> $GITHUB_ENV
