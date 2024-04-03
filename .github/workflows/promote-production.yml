@@ -90,12 +90,13 @@ jobs:
           REPOSITORY=${{ env.REPO_INFO }}
           FOLDER="bin/$REPOSITORY"
           BRANCH_NAME="update-manifest-to-$STAGING_IMAGE"
+          DEFAULT_BRANCH="${{ fromJson(github.event.inputs.port_payload).payload.entity.properties.defaultBranch}} "
 
           # Clone the remote repository and change working directory to the
           # folder it was cloned to.
           git clone \
             --depth=1 \
-            --branch=main \
+            --branch=$DEFAULT_BRANCH \
             https://${{ secrets.CREATOR_TOKEN }}@github.com/$REPOSITORY \
             $FOLDER
 
@@ -128,7 +129,7 @@ jobs:
             --body "" \
             --title "chore: update scripts to $STAGING_IMAGE" \
             --head "$BRANCH_NAME" \
-            --base "main"
+            --base "$DEFAULT_BRANCH"
 
       - name: Inform Port about pull request creation status - Success
         if: steps.set-production.outcome == 'success'
