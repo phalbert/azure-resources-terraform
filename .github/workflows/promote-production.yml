@@ -149,8 +149,10 @@ jobs:
             }')
 
           curl_status=$(echo "$curl_response" | tail -1)  # Get the HTTP status from the last line
+          echo $curl_status
 
           html_url=$(echo "$curl_response" | jq -r '.html_url')  # Extract the html_url using jq
+          echo $html_url
 
           if [[ $curl_status -eq 201 ]]; then
             echo "status=success" >> "$GITHUB_OUTPUT"
