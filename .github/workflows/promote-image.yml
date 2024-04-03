@@ -160,8 +160,7 @@ jobs:
             echo "html_url=$html_url" >> "$GITHUB_OUTPUT"  # Add html_url to output
           else
             echo "status=failure" >> "$GITHUB_OUTPUT"
-          fi
-        
+          fi      
 
       - name: Inform Port about pull request creation status - Success
         if: steps.create-pr.outputs.status == 'success'
