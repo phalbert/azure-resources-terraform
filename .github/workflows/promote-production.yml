@@ -133,6 +133,7 @@ jobs:
           baseUrl: https://api.getport.io
           operation: PATCH_RUN
           runId: ${{ fromJson(inputs.port_payload).context.runId }}
+          status: ${{ steps.create-pr.outputs.status }}
           logMessage: |
             The promotion of the image to production failed.
 
