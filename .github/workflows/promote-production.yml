@@ -121,7 +121,7 @@ jobs:
 
           # Update the manifest file to the production image version.
           manifest_file=${{ env.PRODUCTION_MANIFEST_PATH }}
-          yq -i eval '.spec.template.spec.containers[0].image = "$STAGING_IMAGE"' $manifest_file
+          yq -i eval '.spec.template.spec.containers[0].image = "${{ env.STAGING_IMAGE }}"' $manifest_file
 
           # Commit the changes and push the feature branch to origin
           git add .
