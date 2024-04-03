@@ -3,10 +3,6 @@ name: Promote Production
 on:
   workflow_dispatch:
     inputs:
-      auto_merge:
-        description: Whether the created PR should be merged automatically
-        required: true
-        type: boolean
       port_payload:
         required: true
         description: >-
@@ -26,7 +22,7 @@ jobs:
           baseUrl: https://api.getport.io
           operation: PATCH_RUN
           runId: ${{ fromJson(inputs.port_payload).context.runId }}
-          logMessage: "Starting promotion of deployment image from staging to production..."
+          logMessage: "About to promote deployment image from staging to production..."
 
       - name: Extract Repository and PR Number
         id: extract_info
@@ -47,7 +43,7 @@ jobs:
           blueprint: running_service
           identifier: ${{ fromJson(inputs.port_payload).payload.entity.relations.test_runtime }}
           runId: ${{ fromJson(inputs.port_payload).context.runId }}
-          logMessage: "Fetching the current staging image..."
+          logMessage: "Getting the current staging image..."
 
       - name: Set Staging Image in env
         run: echo "STAGING_IMAGE=${{ fromJson(steps.get-staging.outputs.entity).relations.image }}" >> $GITHUB_ENV
@@ -62,7 +58,7 @@ jobs:
           identifier: ${{ fromJson(inputs.port_payload).payload.entity.relations.prod_runtime }}
           blueprint: running_service
           runId: ${{ fromJson(inputs.port_payload).context.runId }}
-          logMessage: "Updating the production deployment image to ${{ env.STAGING_IMAGE }}"
+          logMessage: "Updating the production image..."
           relations: |
             {
               "image": "${{ env.STAGING_IMAGE }}"
@@ -96,24 +92,76 @@ jobs:
       - name: Set Production manifest path in env
         run: echo "PRODUCTION_MANIFEST_PATH=${{ fromJson(steps.get-prod-runtime.outputs.entity).properties.gitPath }}" >> $GITHUB_ENV
 
-      - uses: actions/checkout@v3
-      - name: Create PR
-        id: create-pr
-        uses: fjogeleit/yaml-update-action@main
-        env:
-          IMAGE_PROPERTY_PATH: .spec.template.spec.containers[0].image
-        with:
-          valueFile: ${{ env.PRODUCTION_MANIFEST_PATH }}
-          propertyPath: ${{ env.IMAGE_PROPERTY_PATH }}
-          value: '${{ env.STAGING_IMAGE }}'
-          commitChange: true
-          token: ${{ secrets.CREATOR_TOKEN }}
-          targetBranch: main
-          masterBranchName: main
-          createPR: true
-          branch: deployment/${{ fromJson(github.event.inputs.port_payload).context.runId }}
-          message: 'Update deployment image to ${{ env.STAGING_IMAGE }}'
+      - name: Change the production image in the manifest file
+        if: steps.set-production.outcome == 'success'
+        id: send-pr
+        run: |
+          STAGING_IMAGE=${{ env.STAGING_IMAGE }}
+          REPOSITORY=${{ env.REPO_INFO }}
+          FOLDER="bin/$REPOSITORY"
+          BRANCH_NAME="update-manifest-to-$STAGING_IMAGE"
+          DEFAULT_BRANCH="${{ fromJson(inputs.port_payload).payload.entity.properties.defaultBranch}} "
 
+          # Clone the remote repository and change working directory to the
+          # folder it was cloned to.
+          git clone \
+            --depth=1 \
+            --branch=$DEFAULT_BRANCH \
+            https://${{ secrets.CREATOR_TOKEN }}@github.com/$REPOSITORY \
+            $FOLDER
+
+          cd $FOLDER
+
+          # Setup the committers identity.
+          git config user.email "github@actions.bot"
+          git config user.name "GitHub Actions"
+
+          # Create a new feature branch for the changes.
+          git checkout -b $BRANCH_NAME
+
+          # Update the manifest file to the production image version.
+          manifest_file=${{ env.PRODUCTION_MANIFEST_PATH }}
+          yq -i eval '.spec.template.spec.containers[0].image = "${{ env.STAGING_IMAGE }}"' $manifest_file
+
+          # Commit the changes and push the feature branch to origin
+          git add .
+          git commit -m "chore: update production image to $STAGING_IMAGE"
+          git push origin $BRANCH_NAME
+
+          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+
+      - name: Create Pull Request using GitHub API
+        id: create-pr
+        if: steps.set-production.outcome == 'success'  # Conditional trigger
+        run: |
+          BRANCH_NAME="update-manifest-to-${{ env.STAGING_IMAGE }}"
+          DEFAULT_BRANCH="${{ fromJson(inputs.port_payload).payload.entity.properties.defaultBranch}}"
+      
+          # Capture the entire curl output into a variable
+          curl_response=$(curl -X POST \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: token ${{ secrets.CREATOR_TOKEN }}" \
+            https://api.github.com/repos/${{ env.REPO_INFO }}/pulls \
+            -d '{
+              "title": "chore: update production image to ${{ env.STAGING_IMAGE }}",
+              "body": "## Pull Request Trigger Details\n\n**Triggered by:** ${{ fromJson(inputs.port_payload).trigger.by.user.email }} from ${{ fromJson(inputs.port_payload).trigger.origin }}\n\n## Context\n\n**Run ID Link:** https://app.getport.io/organization/run?runId=${{ fromJson(inputs.port_payload).context.runId }}",
+              "head": "${{ env.BRANCH_NAME }}",
+              "base": "${{ fromJson(inputs.port_payload).payload.entity.properties.defaultBranch}}"
+            }')
+      
+          # Check the exit code of curl to get the HTTP status
+          curl_status=$?
+      
+          # Extract the html_url using jq
+          html_url=$(echo "$curl_response" | jq -r '.html_url')
+      
+          if [[ $curl_status -eq 0 ]]; then
+            echo "status=success" >> "$GITHUB_OUTPUT"
+            echo "html_url=$html_url" >> "$GITHUB_OUTPUT"  # Add html_url to output
+          else
+            echo "status=failure" >> "$GITHUB_OUTPUT"
+          fi
+        
 
       - name: Inform Port about pull request creation status - Success
         if: steps.create-pr.outputs.status == 'success'
@@ -138,37 +186,3 @@ jobs:
           runId: ${{ fromJson(inputs.port_payload).context.runId }}
           logMessage: |
             The promotion of the image to production failed.
-
-      - name: Merge Pull Request
-        if: ${{ github.event.inputs.auto_merge == 'true' && steps.create-pr.outcome == 'success' }}
-        env:
-          GH_TOKEN: ${{ secrets.CREATOR_TOKEN }}
-          PR_URL: ${{ fromJson(steps.create-pr.outputs.pull_request).url }}
-        run: |
-          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-            -X PUT \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer $GH_TOKEN" \
-            "$PR_URL/merge")
-
-          echo "HTTP Status: $HTTP_STATUS"
-
-          if [ $HTTP_STATUS -eq 200 ]; then
-            echo "Pull request merged successfully."
-            echo "merge_status=successful" >> $GITHUB_ENV
-          else
-            echo "Failed to merge PR. HTTP Status: $HTTP_STATUS"
-            echo "merge_status=unsuccessful" >> $GITHUB_ENV
-          fi
-    
-      - name: Inform completion of Argocd rollback into Port
-        if: ${{ github.event.inputs.auto_merge == 'true' }}
-        uses: port-labs/port-github-action@v1
-        with:
-          clientId: ${{ secrets.PORT_CLIENT_ID }}
-          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
-          baseUrl: https://api.getport.io
-          operation: PATCH_RUN
-          runId: ${{fromJson(github.event.inputs.port_payload).context.runId}}
-          logMessage: 'Promotion process completed. Pull request merge was ${{ env.merge_status }}'
-
