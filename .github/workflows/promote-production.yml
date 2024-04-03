@@ -24,6 +24,14 @@ jobs:
           runId: ${{ fromJson(inputs.port_payload).context.runId }}
           logMessage: "About to promote deployment image from staging to production..."
 
+      - name: Extract Repository and PR Number
+        id: extract_info
+        run: |
+          link="${{ fromJson(inputs.port_payload).payload.entity.properties.url }}"
+          repo_info=$(echo "$link" | sed 's|https://github.com/||' | awk -F'/' '{print $1 "/" $2}')
+
+          echo "REPO_INFO=$repo_info" >> $GITHUB_ENV
+
       - name: Get the current staging image
         id: get-staging
         uses: port-labs/port-github-action@v1
@@ -77,14 +85,6 @@ jobs:
           runId: ${{ fromJson(inputs.port_payload).context.runId }}
           logMessage: |
             Opening a pull request to update the production image
-
-      - name: Extract Repository and PR Number
-        id: extract_info
-        run: |
-          link="${{ fromJson(inputs.port_payload).payload.entity.properties.url }}"
-          repo_info=$(echo "$link" | sed 's|https://github.com/||' | awk -F'/' '{print $1 "/" $2}')
-
-          echo "REPO_INFO=$repo_info" >> $GITHUB_ENV
 
       - name: Send pull-request
         if: steps.set-production.outcome == 'success'
