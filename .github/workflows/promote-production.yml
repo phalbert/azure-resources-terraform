@@ -45,6 +45,9 @@ jobs:
           runId: ${{ fromJson(inputs.port_payload).context.runId }}
           logMessage: "Getting the current staging image..."
 
+      - name: Set Staging Image in env
+        run: echo "STAGING_IMAGE=${{ fromJson(steps.get-staging.outputs.entity).relations.image }}" >> $GITHUB_ENV
+
       - name: Set the production image
         id: set-production
         uses: port-labs/port-github-action@v1
@@ -58,8 +61,23 @@ jobs:
           logMessage: "Updating the production image..."
           relations: |
             {
-              "image": "${{ fromJson(steps.get-staging.outputs.entity).relations.image }}"
+              "image": "${{ env.STAGING_IMAGE }}"
             }
+
+      - name: Set Production manifest path in env
+        run: echo "PRODUCTION_MANIFEST_PATH=${{ fromJson(steps.set-production.outputs.entity).gitPath }}" >> $GITHUB_ENV
+
+      - name: Inform Port about pull request creation status - Success
+        if: steps.set-production.outcome == 'success'
+        uses: port-labs/port-github-action@v1
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          baseUrl: https://api.getport.io
+          operation: PATCH_RUN
+          runId: ${{ fromJson(inputs.port_payload).context.runId }}
+          logMessage: |
+            Opening a pull request to update the production image
 
       - name: Get the production runtime manifest path
         id: get-prod-runtime
@@ -74,23 +92,11 @@ jobs:
           runId: ${{ fromJson(inputs.port_payload).context.runId }}
           logMessage: "Getting the current production manifest runtime path..."
 
-      - name: Inform Port about pull request creation status - Success
-        if: steps.set-production.outcome == 'success'
-        uses: port-labs/port-github-action@v1
-        with:
-          clientId: ${{ secrets.PORT_CLIENT_ID }}
-          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
-          baseUrl: https://api.getport.io
-          operation: PATCH_RUN
-          runId: ${{ fromJson(inputs.port_payload).context.runId }}
-          logMessage: |
-            Opening a pull request to update the production image
-
       - name: Send pull-request
         if: steps.set-production.outcome == 'success'
         id: send-pr
         run: |
-          STAGING_IMAGE=${{ fromJson(steps.get-staging.outputs.entity).relations.image }}
+          STAGING_IMAGE=${{ env.STAGING_IMAGE }}
           REPOSITORY=${{ env.REPO_INFO }}
           FOLDER="bin/$REPOSITORY"
           BRANCH_NAME="update-manifest-to-$STAGING_IMAGE"
@@ -114,7 +120,7 @@ jobs:
           git checkout -b $BRANCH_NAME
 
           # Update the manifest file to the production image version.
-          manifest_file=${{ fromJson(steps.set-production.outputs.entity).gitPath }}
+          manifest_file=${{ env.PRODUCTION_MANIFEST_PATH }}
           yq -i eval '.spec.template.spec.containers[0].image = "$STAGING_IMAGE"' $manifest_file
 
           # Commit the changes and push the feature branch to origin
