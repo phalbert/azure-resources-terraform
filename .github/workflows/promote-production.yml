@@ -60,7 +60,7 @@ jobs:
           baseUrl: https://api.getport.io
           operation: GET
           blueprint: running_service
-          identifier: ${{fromJson(github.event.inputs.port_payload).payload.entity.relations.test_runtime }}
+          identifier: ${{fromJson(github.event.inputs.port_payload).payload.entity.relations.prod_runtime }}
           runId: ${{ fromJson(github.event.inputs.port_payload).context.runId }}
           logMessage: "Getting the current production manifest runtime path..."
 
@@ -103,14 +103,14 @@ jobs:
           cd $FOLDER
 
           # Setup the committers identity.
-          git config user.email "some-user@some-domain.com"
-          git config user.name "Some User"
+          git config user.email "github@actions.bot"
+          git config user.name "GitHub Actions"
 
           # Create a new feature branch for the changes.
           git checkout -b $BRANCH_NAME
 
           # Update the manifest file to the production image version.
-          manifest_file=${{ fromJson(steps.get-prod-runtime.outputs.entity).gitPath }}
+          manifest_file=${{ fromJson(steps.set-production.outputs.entity).gitPath }}
           yq -i eval '.spec.template.spec.containers[0].image = "$STAGING_IMAGE"' $manifest_file
 
           # Commit the changes and push the feature branch to origin
