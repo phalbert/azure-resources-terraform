@@ -171,7 +171,7 @@ jobs:
           operation: PATCH_RUN
           runId: ${{ fromJson(inputs.port_payload).context.runId }}
           logMessage: |
-            The production image has been updated successfully
+            A pull request has been opened to update the production image: ${{ steps.create-pr.outputs.html_url }}
 
       - name: Inform Port about pull request creation status - Failure
         if: steps.create-pr.outputs.status != 'success'
