@@ -141,8 +141,8 @@ jobs:
             https://api.github.com/repos/${{ env.REPO_INFO }}/pulls \
             -d '{
               "title": "chore: update production image to ${{ env.STAGING_IMAGE }}",
-              "head": $BRANCH_NAME,
-              "base": $DEFAULT_BRANCH
+              "head": "${BRANCH_NAME}",
+              "base": "${DEFAULT_BRANCH}"
             }'
 
 
