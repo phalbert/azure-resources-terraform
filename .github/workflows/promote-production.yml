@@ -51,6 +51,85 @@ jobs:
               "image": "${{ fromJson(steps.get-staging.outputs.entity).relations.image }}"
             }
 
+      - name: Get the production runtime manifest path
+        id: get-prod-runtime
+        uses: port-labs/port-github-action@v1
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          baseUrl: https://api.getport.io
+          operation: GET
+          blueprint: running_service
+          identifier: ${{fromJson(github.event.inputs.port_payload).payload.entity.relations.test_runtime }}
+          runId: ${{ fromJson(github.event.inputs.port_payload).context.runId }}
+          logMessage: "Getting the current production manifest runtime path..."
+
+      - name: Inform Port about pull request creation status - Success
+        if: steps.set-production.outcome == 'success'
+        uses: port-labs/port-github-action@v1
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          baseUrl: https://api.getport.io
+          operation: PATCH_RUN
+          runId: ${{ fromJson(github.event.inputs.port_payload).context.runId }}
+          logMessage: |
+            Opening a pull request to update the production image
+      
+      - name: Extract Repository and PR Number
+        id: extract_info
+        run: |
+          link="${{ fromJson(inputs.port_payload).payload.entity.properties.link }}"
+          repo_info=$(echo "$link" | sed 's|https://github.com/||' | awk -F'/' '{print $1 "/" $2}')
+
+          echo "REPO_INFO=$repo_info" >> $GITHUB_ENV
+        
+      - name: Send pull-request
+        run: |
+          STAGING_IMAGE=${{ fromJson(steps.get-staging.outputs.entity).relations.image }}
+          REPOSITORY=${{ env.REPO_INFO }}
+          FOLDER="bin/$REPOSITORY"
+          BRANCH_NAME="update-manifest-to-$STAGING_IMAGE"
+
+          # Clone the remote repository and change working directory to the
+          # folder it was cloned to.
+          git clone \
+            --depth=1 \
+            --branch=main \
+            https://${{ secrets.CREATOR_TOKEN }}@github.com/$REPOSITORY \
+            $FOLDER
+
+          cd $FOLDER
+
+          # Setup the committers identity.
+          git config user.email "some-user@some-domain.com"
+          git config user.name "Some User"
+
+          # Create a new feature branch for the changes.
+          git checkout -b $BRANCH_NAME
+
+          # Update the manifest file to the production image version.
+          manifest_file=${{ fromJson(steps.get-prod-runtime.outputs.entity).gitPath }}
+          yq -i eval '.spec.template.spec.containers[0].image = "$STAGING_IMAGE"' $manifest_file
+
+          # Commit the changes and push the feature branch to origin
+          git add .
+          git commit -m "chore: update scripts to $STAGING_IMAGE"
+          git push origin $BRANCH_NAME
+
+          # Store the PAT in a file that can be accessed by the
+          # GitHub CLI.
+          echo "${{ secrets.CREATOR_TOKEN }}" > token.txt
+
+          # Authorize GitHub CLI for the current repository and
+          # create a pull-requests containing the updates.
+          gh auth login --with-token < token.txt
+          gh pr create \
+            --body "" \
+            --title "chore: update scripts to $STAGING_IMAGE" \
+            --head "$BRANCH_NAME" \
+            --base "main"
+
       - name: Inform Port about pull request creation status - Success
         if: steps.set-production.outcome == 'success'
         uses: port-labs/port-github-action@v1
