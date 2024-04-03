@@ -132,33 +132,35 @@ jobs:
 
       - name: Create Pull Request using GitHub API
         id: create-pr
-        if: steps.set-production.outcome == 'success'
+        if: steps.set-production.outcome == 'success'  # Conditional trigger
         run: |
-            BRANCH_NAME="update-manifest-to-${{ env.STAGING_IMAGE }}"
-            DEFAULT_BRANCH="${{ fromJson(inputs.port_payload).payload.entity.properties.defaultBranch}}"
-        
-            # Capture the entire curl output into a variable
-            curl_response=$(curl -X POST \
-              -H "Accept: application/vnd.github.v3+json" \
-              -H "Authorization: token ${{ secrets.CREATOR_TOKEN }}" \
-              https://api.github.com/repos/${{ env.REPO_INFO }}/pulls \
-              -d '{
-                "title": "chore: update production image to ${{ env.STAGING_IMAGE }}",
-                "head": "${{ env.BRANCH_NAME }}",
-                "base": "${{ fromJson(inputs.port_payload).payload.entity.properties.defaultBranch}}"
-              }')
-        
-            # Check the exit code of curl to get the HTTP status
-            curl_status=$?
-        
-            html_url=$(echo "$curl_response" | jq -r '.html_url')  # Extract the html_url using jq
-        
-            if [[ $curl_status -eq 0 ]]; then
-              echo "status=success" >> "$GITHUB_OUTPUT"
-              echo "html_url=$html_url" >> "$GITHUB_OUTPUT"  # Add html_url to output
-            else
-              echo "status=failure" >> "$GITHUB_OUTPUT"
-            fi
+          BRANCH_NAME="update-manifest-to-${{ env.STAGING_IMAGE }}"
+          DEFAULT_BRANCH="${{ fromJson(inputs.port_payload).payload.entity.properties.defaultBranch}}"
+      
+          # Capture the entire curl output into a variable
+          curl_response=$(curl -X POST \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: token ${{ secrets.CREATOR_TOKEN }}" \
+            https://api.github.com/repos/${{ env.REPO_INFO }}/pulls \
+            -d '{
+              "title": "chore: update production image to ${{ env.STAGING_IMAGE }}",
+              "body": "## Pull Request Trigger Details\n\n**Triggered by:** ${{ fromJson(inputs.port_payload).trigger.by.user.email }} from ${{ fromJson(inputs.port_payload).trigger.origin }}\n\n## Context\n\n**Run ID Link:** https://app.getport.io/organization/run?runId=${{ fromJson(inputs.port_payload).context.runId }}",
+              "head": "${{ env.BRANCH_NAME }}",
+              "base": "${{ fromJson(inputs.port_payload).payload.entity.properties.defaultBranch}}"
+            }')
+      
+          # Check the exit code of curl to get the HTTP status
+          curl_status=$?
+      
+          # Extract the html_url using jq
+          html_url=$(echo "$curl_response" | jq -r '.html_url')
+      
+          if [[ $curl_status -eq 0 ]]; then
+            echo "status=success" >> "$GITHUB_OUTPUT"
+            echo "html_url=$html_url" >> "$GITHUB_OUTPUT"  # Add html_url to output
+          else
+            echo "status=failure" >> "$GITHUB_OUTPUT"
+          fi
         
 
       - name: Inform Port about pull request creation status - Success
