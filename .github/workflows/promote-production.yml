@@ -84,7 +84,7 @@ jobs:
         if: steps.set-production.outcome == 'success'
         id: make-changes
         env:
-          IMAGE_PROPERTTY_PATH: '.spec.template.spec.containers[0].image'
+          IMAGE_PROPERTTY_PATH: ".spec.template.spec.containers[0].image"
         run: |
           # Update the manifest file to the production image version.
           manifest_file=${{ fromJson(steps.get-prod-runtime.outputs.entity).properties.gitPath }}
@@ -100,7 +100,7 @@ jobs:
           author: ${{ github.actor }} <${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com>
           signoff: false
           branch: deployment/${{ fromJson(inputs.port_payload).context.runId }}
-          title: '[Promotion] Update production image for ${{ fromJson(inputs.port_payload).payload.entity.title }} to latest staging image'
+          title: "[Promotion] Update production image for ${{ fromJson(inputs.port_payload).payload.entity.title }} to latest staging image"
           body: |
             Update report
             - **Staging image**: ${{ fromJson(steps.get-staging.outputs.entity).relations.image }}
@@ -123,6 +123,39 @@ jobs:
           runId: ${{ fromJson(inputs.port_payload).context.runId }}
           logMessage: |
             A pull request has been opened to update the production image: ${{ steps.create-pr.outputs.pull-request-url }}
+
+      - name: Merge Pull Request
+        if: ${{ env.auto_merge == 'true' && steps.create-pr.outcome == 'success' }}
+        env:
+          GH_TOKEN: ${{ secrets.CREATOR_TOKEN }}
+          PR_URL: ${{ steps.create-pr.outputs.pull-request-url }}
+        run: |
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -X PUT \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            "$PR_URL/merge")
+
+          echo "HTTP Status: $HTTP_STATUS"
+
+          if [ $HTTP_STATUS -eq 200 ]; then
+            echo "Pull request merged successfully."
+            echo "merge_status=successful" >> $GITHUB_ENV
+          else
+            echo "Failed to merge PR. HTTP Status: $HTTP_STATUS"
+            echo "merge_status=unsuccessful" >> $GITHUB_ENV
+          fi
+
+      - name: Inform completion of Argocd rollback into Port
+        if: ${{ env.auto_merge == 'true' }}
+        uses: port-labs/port-github-action@v1
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          baseUrl: https://api.getport.io
+          operation: PATCH_RUN
+          runId: ${{fromJson(github.event.inputs.port_payload).context.runId}}
+          logMessage: "Pull request merge was ${{ env.merge_status }}"
 
       - name: Inform Port about pull request creation status - Failure
         if: steps.create-pr.outputs.pull-request-url == ''
