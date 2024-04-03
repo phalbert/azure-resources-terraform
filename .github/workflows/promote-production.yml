@@ -38,9 +38,6 @@ jobs:
           runId: ${{ fromJson(inputs.port_payload).context.runId }}
           logMessage: "Getting the current staging image..."
 
-      - name: Set Staging Image in env
-        run: echo "STAGING_IMAGE=${{ fromJson(steps.get-staging.outputs.entity).relations.image }}" >> $GITHUB_ENV
-
       - name: Set the production image
         id: set-production
         uses: port-labs/port-github-action@v1
@@ -82,9 +79,6 @@ jobs:
           runId: ${{ fromJson(inputs.port_payload).context.runId }}
           logMessage: "Getting the current production manifest runtime path..."
 
-      - name: Set Production manifest path in env
-        run: echo "PRODUCTION_MANIFEST_PATH=${{ fromJson(steps.get-prod-runtime.outputs.entity).properties.gitPath }}" >> $GITHUB_ENV
-      
       - uses: actions/checkout@v4
       - name: Change the production image in the manifest file
         if: steps.set-production.outcome == 'success'
