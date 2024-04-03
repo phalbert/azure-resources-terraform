@@ -141,17 +141,26 @@ jobs:
           #   --head "$BRANCH_NAME" \
           #   --base "$DEFAULT_BRANCH"
 
-      - name: Create Pull Request
+      - name: Create Pull Request with curl on GitHubAPI
         if: steps.set-production.outcome == 'success'
-        uses: peter-evans/create-pull-request@v3
-        with:
-          token: ${{ secrets.CREATOR_TOKEN }}
-          commit-message: "chore: update production image to ${{ env.STAGING_IMAGE }}"
-          title: "chore: update production image to ${{ env.STAGING_IMAGE }}"
-          body: "This PR updates the production image to the latest staging image."
-          branch: "update-manifest-to-${{ env.STAGING_IMAGE }}"
-          base: ${{ fromJson(inputs.port_payload).payload.entity.properties.defaultBranch }}
-          labels: "port"
+        run: |
+          STAGING_IMAGE=${{ env.STAGING_IMAGE }}
+          REPOSITORY=${{ env.REPO_INFO }}
+          FOLDER="bin/$REPOSITORY"
+          BRANCH_NAME="update-manifest-to-$STAGING_IMAGE"
+          DEFAULT_BRANCH="${{ fromJson(inputs.port_payload).payload.entity.properties.defaultBranch}} "
+
+          # Create a pull request using the GitHub API
+          curl -X POST \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: token ${{ secrets.CREATOR_TOKEN }}" \
+            https://api.github.com/repos/$REPOSITORY/pulls \
+            -d '{
+              "title": "chore: update production image to $STAGING_IMAGE",
+              "head": "$BRANCH_NAME",
+              "base": "$DEFAULT_BRANCH"
+            }'
+
 
       - name: Inform Port about pull request creation status - Success
         if: steps.set-production.outcome == 'success'
