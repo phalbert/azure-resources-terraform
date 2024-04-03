@@ -127,16 +127,17 @@ jobs:
       - name: Merge Pull Request
         if: ${{ env.auto_merge == 'true' && steps.create-pr.outcome == 'success' }}
         env:
-          GH_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
-          PR_URL: ${{ steps.create-pr.outputs.pull-request-url }}
+          GH_TOKEN: ${{ secrets.CREATOR_TOKEN }}
+          PR_URL: ${{ steps.create-pr.outputs.pull-request-number }}
+          pr_number: ${{ steps.create-pr.outputs.pull-request-number }}
         run: |
-          echo "Merging pull request.. $PR_URL - ${PR_URL}"
+          echo "Merging pull request.. $PR_URL"
 
           HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
             -X PUT \
-            -H "Accept: application/vnd.github+json" \
+            -H "Accept: application/vnd.github.v3+json" \
             -H "Authorization: Bearer $GH_TOKEN" \
-            "$PR_URL/merge")
+            "https://api.github.com/repos/${{ github.repository }}/pulls/$pr_number/merge")
 
           echo "HTTP Status: $HTTP_STATUS"
 
