@@ -90,7 +90,7 @@ jobs:
           logMessage: "Getting the current production manifest runtime path..."
 
       - name: Set Production manifest path in env
-        run: echo "PRODUCTION_MANIFEST_PATH=${{ fromJson(steps.get-prod-runtime.outputs.entity).gitPath }}" >> $GITHUB_ENV
+        run: echo "PRODUCTION_MANIFEST_PATH=${{ fromJson(steps.get-prod-runtime.outputs.entity).properties.gitPath }}" >> $GITHUB_ENV
   
       - name: Send pull-request
         if: steps.set-production.outcome == 'success'
