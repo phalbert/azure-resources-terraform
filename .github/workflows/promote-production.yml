@@ -125,21 +125,33 @@ jobs:
 
           # Commit the changes and push the feature branch to origin
           git add .
-          git commit -m "chore: update scripts to $STAGING_IMAGE"
+          git commit -m "chore: update production image to $STAGING_IMAGE"
           git push origin $BRANCH_NAME
 
           # Store the PAT in a file that can be accessed by the
           # GitHub CLI.
-          echo "${{ secrets.CREATOR_TOKEN }}" > token.txt
+          # echo "${{ secrets.CREATOR_TOKEN }}" > token.txt
 
           # Authorize GitHub CLI for the current repository and
           # create a pull-requests containing the updates.
-          gh auth login --with-token < token.txt
-          gh pr create \
-            --body "" \
-            --title "chore: update scripts to $STAGING_IMAGE" \
-            --head "$BRANCH_NAME" \
-            --base "$DEFAULT_BRANCH"
+          # gh auth login --with-token < token.txt
+          # gh pr create \
+          #   --body "" \
+          #   --title "chore: update production image to $STAGING_IMAGE" \
+          #   --head "$BRANCH_NAME" \
+          #   --base "$DEFAULT_BRANCH"
+
+      - name: Create Pull Request
+        if: steps.set-production.outcome == 'success'
+        uses: peter-evans/create-pull-request@v3
+        with:
+          token: ${{ secrets.CREATOR_TOKEN }}
+          commit-message: "chore: update production image to ${{ env.STAGING_IMAGE }}"
+          title: "chore: update production image to ${{ env.STAGING_IMAGE }}"
+          body: "This PR updates the production image to the latest staging image."
+          branch: "update-manifest-to-${{ env.STAGING_IMAGE }}"
+          base: ${{ fromJson(inputs.port_payload).payload.entity.properties.defaultBranch }}
+          labels: "port"
 
       - name: Inform Port about pull request creation status - Success
         if: steps.set-production.outcome == 'success'
