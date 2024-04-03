@@ -75,7 +75,7 @@ jobs:
           runId: ${{ fromJson(github.event.inputs.port_payload).context.runId }}
           logMessage: |
             Opening a pull request to update the production image
-      
+
       - name: Extract Repository and PR Number
         id: extract_info
         run: |
@@ -83,7 +83,7 @@ jobs:
           repo_info=$(echo "$link" | sed 's|https://github.com/||' | awk -F'/' '{print $1 "/" $2}')
 
           echo "REPO_INFO=$repo_info" >> $GITHUB_ENV
-        
+
       - name: Send pull-request
         run: |
           STAGING_IMAGE=${{ fromJson(steps.get-staging.outputs.entity).relations.image }}
