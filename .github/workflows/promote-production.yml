@@ -3,16 +3,13 @@ name: Promote Production
 on:
   workflow_dispatch:
     inputs:
-      auto_merge_pr:
-        description: Whether the created PR should be merged automatically
-        required: true
-        type: boolean
       port_payload:
         required: true
         description: >-
           Port's payload, including details for who triggered the action and
           general context (blueprint, run id, etc...)
-
+env:
+  auto_merge: ${{ fromJson(inputs.port_payload).payload.properties.auto_merge_pr }}
 jobs:
   promote-deployment:
     runs-on: ubuntu-latest
@@ -140,7 +137,7 @@ jobs:
             The promotion of the image to production failed.
 
       - name: Merge Pull Request
-        if: ${{ github.event.inputs.auto_merge == 'true' && steps.create-pr.outcome == 'success' }}
+        if: ${{ env.auto_merge == 'true' && steps.create-pr.outcome == 'success' }}
         env:
           GH_TOKEN: ${{ secrets.CREATOR_TOKEN }}
           PR_URL: ${{ fromJson(steps.create-pr.outputs.pull_request).url }}
@@ -162,7 +159,7 @@ jobs:
           fi
     
       - name: Inform completion of Argocd rollback into Port
-        if: ${{ github.event.inputs.auto_merge == 'true' }}
+        if: ${{ env.auto_merge == 'true' }}
         uses: port-labs/port-github-action@v1
         with:
           clientId: ${{ secrets.PORT_CLIENT_ID }}
