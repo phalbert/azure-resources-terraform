@@ -131,21 +131,18 @@ jobs:
       - name: Create Pull Request using GitHub API
         if: steps.set-production.outcome == 'success'
         run: |
-          STAGING_IMAGE=${{ env.STAGING_IMAGE }}
-          REPOSITORY=${{ env.REPO_INFO }}
-          FOLDER="bin/$REPOSITORY"
-          BRANCH_NAME="update-manifest-to-$STAGING_IMAGE"
-          DEFAULT_BRANCH="${{ fromJson(inputs.port_payload).payload.entity.properties.defaultBranch}} "
+          BRANCH_NAME="update-manifest-to-${{ env.STAGING_IMAGE }}"
+          DEFAULT_BRANCH="${{ fromJson(inputs.port_payload).payload.entity.properties.defaultBranch}}"
 
           # Create a pull request using the GitHub API
           curl -X POST \
             -H "Accept: application/vnd.github.v3+json" \
             -H "Authorization: token ${{ secrets.CREATOR_TOKEN }}" \
-            https://api.github.com/repos/$REPOSITORY/pulls \
+            https://api.github.com/repos/${{ env.REPO_INFO }}/pulls \
             -d '{
-              "title": "chore: update production image to $STAGING_IMAGE",
-              "head": "$BRANCH_NAME",
-              "base": "$DEFAULT_BRANCH"
+              "title": "chore: update production image to ${{ env.STAGING_IMAGE }}",
+              "head": $BRANCH_NAME,
+              "base": $DEFAULT_BRANCH
             }'
 
 
