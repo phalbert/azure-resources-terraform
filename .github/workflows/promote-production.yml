@@ -3,7 +3,7 @@ name: Promote Production
 on:
   workflow_dispatch:
     inputs:
-      auto_merge:
+      auto_merge_pr:
         description: Whether the created PR should be merged automatically
         required: true
         type: boolean
