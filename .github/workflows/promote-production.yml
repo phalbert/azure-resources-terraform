@@ -91,7 +91,7 @@ jobs:
 
       - name: Set Production manifest path in env
         run: echo "PRODUCTION_MANIFEST_PATH=${{ fromJson(steps.get-prod-runtime.outputs.entity).properties.gitPath }}" >> $GITHUB_ENV
-  
+
       - name: Change the production image in the manifest file
         if: steps.set-production.outcome == 'success'
         id: send-pr
@@ -128,26 +128,33 @@ jobs:
           git commit -m "chore: update production image to $STAGING_IMAGE"
           git push origin $BRANCH_NAME
 
+          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+
       - name: Create Pull Request using GitHub API
+        id: create-pr
         if: steps.set-production.outcome == 'success'
         run: |
           BRANCH_NAME="update-manifest-to-${{ env.STAGING_IMAGE }}"
           DEFAULT_BRANCH="${{ fromJson(inputs.port_payload).payload.entity.properties.defaultBranch}}"
 
-          # Create a pull request using the GitHub API
-          curl -X POST \
+          curl_status=$(curl -X POST \
             -H "Accept: application/vnd.github.v3+json" \
             -H "Authorization: token ${{ secrets.CREATOR_TOKEN }}" \
             https://api.github.com/repos/${{ env.REPO_INFO }}/pulls \
             -d '{
               "title": "chore: update production image to ${{ env.STAGING_IMAGE }}",
-              "head": "${BRANCH_NAME}",
-              "base": "${DEFAULT_BRANCH}"
-            }'
+              "head": "${{ env.BRANCH_NAME }}",
+              "base": "${{ fromJson(inputs.port_payload).payload.entity.properties.defaultBranch}}"
+            }' -w "%{http_code}")
 
+          if [[ $curl_status -eq 201 ]]; then
+            echo "status=success" >> "$GITHUB_OUTPUT"
+          else
+            echo "status=failure" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Inform Port about pull request creation status - Success
-        if: steps.set-production.outcome == 'success'
+        if: steps.create-pr.outputs.status == 'success'
         uses: port-labs/port-github-action@v1
         with:
           clientId: ${{ secrets.PORT_CLIENT_ID }}
@@ -159,7 +166,7 @@ jobs:
             The production image has been updated successfully
 
       - name: Inform Port about pull request creation status - Failure
-        if: steps.set-production.outcome != 'success'
+        if: steps.create-pr.outputs.status != 'success'
         uses: port-labs/port-github-action@v1
         with:
           clientId: ${{ secrets.PORT_CLIENT_ID }}
