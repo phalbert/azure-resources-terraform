@@ -137,7 +137,8 @@ jobs:
           BRANCH_NAME="update-manifest-to-${{ env.STAGING_IMAGE }}"
           DEFAULT_BRANCH="${{ fromJson(inputs.port_payload).payload.entity.properties.defaultBranch}}"
 
-          curl_status=$(curl -X POST \
+          # Capture the entire curl output into a variable
+          curl_response=$(curl -X POST \
             -H "Accept: application/vnd.github.v3+json" \
             -H "Authorization: token ${{ secrets.CREATOR_TOKEN }}" \
             https://api.github.com/repos/${{ env.REPO_INFO }}/pulls \
@@ -145,10 +146,15 @@ jobs:
               "title": "chore: update production image to ${{ env.STAGING_IMAGE }}",
               "head": "${{ env.BRANCH_NAME }}",
               "base": "${{ fromJson(inputs.port_payload).payload.entity.properties.defaultBranch}}"
-            }' -w "%{http_code}")
+            }')
+
+          curl_status=$(echo "$curl_response" | tail -1)  # Get the HTTP status from the last line
+
+          html_url=$(echo "$curl_response" | jq -r '.html_url')  # Extract the html_url using jq
 
           if [[ $curl_status -eq 201 ]]; then
             echo "status=success" >> "$GITHUB_OUTPUT"
+            echo "html_url=$html_url" >> "$GITHUB_OUTPUT"  # Add html_url to output
           else
             echo "status=failure" >> "$GITHUB_OUTPUT"
           fi
