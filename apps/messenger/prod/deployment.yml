@@ -14,11 +14,11 @@ spec:
         app: my-app
     spec:
       containers:
-        - image: new-image-name:latest
+        - image: messenger_v2
           name: my-app
           ports:
             - containerPort: 80
           resources:
             limits:
-              cpu: "0.5"
-              memory: "512Mi"
+              cpu: '0.5'
+              memory: 512Mi
