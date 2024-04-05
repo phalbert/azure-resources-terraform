@@ -25,7 +25,7 @@ jobs:
           runId: ${{ fromJson(inputs.port_payload).context.runId }}
           logMessage: "About to promote deployment image from staging to production..."
 
-      - name: Get the current staging image
+      - name: Get the Staging Runtime
         id: get-staging
         uses: port-labs/port-github-action@v1
         with:
@@ -35,6 +35,19 @@ jobs:
           operation: GET
           blueprint: running_service
           identifier: ${{ fromJson(inputs.port_payload).payload.entity.relations.test_runtime }}
+          runId: ${{ fromJson(inputs.port_payload).context.runId }}
+          logMessage: "Getting the current staging runtime..."
+
+      - name: Get the Staging Image
+        id: get-staging-image
+        uses: port-labs/port-github-action@v1
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          baseUrl: https://api.getport.io
+          operation: GET
+          blueprint: image
+          identifier: ${{ fromJson(steps.get-staging.outputs.entity).relations.image }}
           runId: ${{ fromJson(inputs.port_payload).context.runId }}
           logMessage: "Getting the current staging image..."
 
@@ -88,7 +101,7 @@ jobs:
         run: |
           # Update the manifest file to the production image version.
           manifest_file=${{ fromJson(steps.get-prod-runtime.outputs.entity).properties.gitPath }}
-          yq -i eval '${{ env.IMAGE_PROPERTY_PATH }} = "${{ fromJson(steps.get-staging.outputs.entity).relations.image }}"' $manifest_file
+          yq -i eval '${{ env.IMAGE_PROPERTY_PATH }} = "${{ fromJson(steps.get-staging-image.outputs.entity).title }}"' $manifest_file
 
       - name: Create Pull Request
         id: create-pr
