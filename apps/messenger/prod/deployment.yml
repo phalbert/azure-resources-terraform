@@ -14,7 +14,7 @@ spec:
         app: my-app
     spec:
       containers:
-        - image: messenger:v3
+        - image: messenger:v4
           name: my-app
           ports:
             - containerPort: 80
