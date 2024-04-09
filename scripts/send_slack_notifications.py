@@ -92,4 +92,8 @@ if __name__ == "__main__":
 
     for entity in entities:
         print(f"Sending notification to {entity['title']}")
-        send_notification(entity, message, sending_api)
+        
+        if "relations" in entity and "consumes_api" in entity.get("relations"):
+            consumes_api = entity["relations"]["consumes_api"]
+            if sending_api in consumes_api:
+                send_notification(entity, message, sending_api)

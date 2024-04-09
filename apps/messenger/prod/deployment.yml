@@ -1,17 +1,17 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: my-app
+  name: messenger
 spec:
   replicas: 2
   revisionHistoryLimit: 3
   selector:
     matchLabels:
-      app: my-app
+      app: messenger
   template:
     metadata:
       labels:
-        app: my-app
+        app: messenger
     spec:
       containers:
         - image: messenger:v4
