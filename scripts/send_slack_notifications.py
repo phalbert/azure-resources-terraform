@@ -73,7 +73,7 @@ if __name__ == "__main__":
     print("Initializing Port client", port_client_id, port_client_secret)
     port_client = PortClient(port_client_id, port_client_secret)
 
-    logger.info(f"Fetching entities for query: sending_api {sending_api},")
+    logger.info(f"Fetching entities for query: {sending_api},")
     search_query = {
         "combinator": "and",
         "rules": [
@@ -92,8 +92,9 @@ if __name__ == "__main__":
 
     for entity in entities:
         print(f"Sending notification to {entity['title']}")
-        
+
         if "relations" in entity and "consumes_api" in entity.get("relations"):
             consumes_api = entity["relations"]["consumes_api"]
+            print(f"Consumes APIs: {consumes_api}")
             if sending_api in consumes_api:
                 send_notification(entity, message, sending_api)
