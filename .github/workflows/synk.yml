@@ -1,0 +1,19 @@
+name: Snyk Exporter Workflow
+
+# This workflow responsible for running Snyk exporter.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run-integration:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: port-labs/ocean-sail@v1
+        with:
+          type: 'snyk'
+          port_client_id: ${{ secrets.OCEAN__PORT__CLIENT_ID }}
+          port_client_secret: ${{ secrets.OCEAN__PORT__CLIENT_SECRET }}
+          config: |
+            token: ${{ secrets.OCEAN__INTEGRATION__CONFIG__TOKEN }}
