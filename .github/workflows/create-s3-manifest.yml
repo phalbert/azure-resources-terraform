@@ -1,4 +1,4 @@
-name: Promote Production
+name: Create New S3 Bucket Crossplane Manifest
 
 on:
   workflow_dispatch:
