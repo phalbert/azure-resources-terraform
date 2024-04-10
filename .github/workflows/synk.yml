@@ -16,4 +16,5 @@ jobs:
           port_client_id: ${{ secrets.PORT_CLIENT_ID }}
           port_client_secret: ${{ secrets.PORT_CLIENT_SECRET }}
           config: |
-            token: ${{ secrets.OCEAN__INTEGRATION__CONFIG__TOKEN }}
+            token: ${{ secrets.SYNK_TOKEN }}
+            organizationId: ${{ secrets.SYNK_ORG }}
