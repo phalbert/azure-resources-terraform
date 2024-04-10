@@ -33,6 +33,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Create crossplane manifest for s3 bucket
+        id: create-manifest
+        env:
+          BUCKET_FILE_PATH: "manifests/s3bucket"
+          CROSSPLANE_TEMPLATE_PATH: "crossplane-templates/s3bucket-crossplane.yaml"
+        run: |
+          mkdir -p $BUCKET_FILE_PATH
+          BUCKET_FILE_NAME="${BUCKET_FILE_PATH}/s3bucket-${{ fromJson(inputs.bucket_name) }}.yaml"
+
+          cp $CROSSPLANE_TEMPLATE_PATH $BUCKET_FILE_NAME
+
+          sed -i "s/{{ bucket_name }}/${{ fromJson(inputs.bucket_name) }}/g" $BUCKET_FILE_NAME
+          sed -i "s/{{ aws_region }}/${{ fromJson(inputs.aws_region) }}/g" $BUCKET_FILE_NAME
+
+          git add $BUCKET_FILE_NAME
             
       - name: Create Pull Request
         id: create-pr
@@ -77,42 +92,6 @@ jobs:
           logMessage: |
             Pull request created successfully. You can view the pull request [here](${{ steps.create-pr.outputs.pull-request-url }}).
 
-      - name: Merge Pull Request
-        if: ${{ env.auto_merge == 'true' && steps.create-pr.outcome == 'success' }}
-        env:
-          GH_TOKEN: ${{ secrets.CREATOR_TOKEN }}
-          PR_URL: ${{ steps.create-pr.outputs.pull-request-number }}
-          pr_number: ${{ steps.create-pr.outputs.pull-request-number }}
-        run: |
-          echo "Merging pull request.. $PR_URL"
-
-          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-            -X PUT \
-            -H "Accept: application/vnd.github.v3+json" \
-            -H "Authorization: Bearer $GH_TOKEN" \
-            "https://api.github.com/repos/${{ github.repository }}/pulls/$pr_number/merge")
-
-          echo "HTTP Status: $HTTP_STATUS"
-
-          if [ $HTTP_STATUS -eq 200 ]; then
-            echo "Pull request merged successfully."
-            echo "merge_status=successful" >> $GITHUB_ENV
-          else
-            echo "Failed to merge PR. HTTP Status: $HTTP_STATUS"
-            echo "merge_status=unsuccessful" >> $GITHUB_ENV
-          fi
-
-      - name: Inform completion of pull request merge
-        if: ${{ env.auto_merge == 'true' }}
-        uses: port-labs/port-github-action@v1
-        with:
-          clientId: ${{ secrets.PORT_CLIENT_ID }}
-          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
-          baseUrl: https://api.getport.io
-          operation: PATCH_RUN
-          runId: ${{fromJson(github.event.inputs.port_payload).context.runId}}
-          logMessage: |
-            Pull request merged successfully.
 
       - name: Inform Port about pull request creation status - Failure
         if: steps.create-pr.outputs.pull-request-url == ''
