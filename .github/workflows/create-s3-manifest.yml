@@ -31,16 +31,16 @@ jobs:
           runId: ${{ fromJson(inputs.port_payload).context.runId }}
           logMessage: "About to create a crossplane manifest for a new s3 bucket..."
 
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Create the manifest file
-        id: make-changes
+      - name: Create crossplane manifest for s3 bucket
         env:
           BUCKET_FILE_PATH: "manifests/s3bucket"
           CROSSPLANE_TEMPLATE_PATH: "crossplane-templates/s3bucket-crossplane.yaml"
         run: |
           mkdir -p $BUCKET_FILE_PATH
-          BUCKET_FILE_NAME="${{ env.BUCKET_FILE_PATH }}/s3bucket-${{ fromJson(inputs.bucket_name) }}.yaml"
+          BUCKET_FILE_NAME="${BUCKET_FILE_PATH}/s3bucket-${{ fromJson(inputs.bucket_name) }}.yaml"
 
           cp $CROSSPLANE_TEMPLATE_PATH $BUCKET_FILE_NAME
 
@@ -48,8 +48,7 @@ jobs:
           sed -i "s/{{ aws_region }}/${{ fromJson(inputs.aws_region) }}/g" $BUCKET_FILE_NAME
 
           git add $BUCKET_FILE_NAME
-
-
+            
       - name: Create Pull Request
         id: create-pr
         uses: peter-evans/create-pull-request@v6
