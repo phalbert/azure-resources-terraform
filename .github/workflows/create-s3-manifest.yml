@@ -14,8 +14,7 @@ on:
         description: >-
           Port's payload, including details for who triggered the action and
           general context (blueprint, run id, etc...)
-env:
-  auto_merge: ${{ fromJson(inputs.port_payload).payload.properties.auto_merge_pr }}
+
 jobs:
   create-manifest:
     runs-on: ubuntu-latest
