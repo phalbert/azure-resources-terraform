@@ -90,7 +90,7 @@ jobs:
           operation: PATCH_RUN
           runId: ${{ fromJson(inputs.port_payload).context.runId }}
           logMessage: |
-            Pull request created successfully. You can view the pull request [here](${{ steps.create-pr.outputs.pull-request-url }}).
+            Pull request created successfully. Link: ${{ steps.create-pr.outputs.pull-request-url }}.
 
 
       - name: Inform Port about pull request creation status - Failure
