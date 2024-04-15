@@ -1,0 +1,68 @@
+name: Destroy EKS Cluster
+
+on:
+  workflow_dispatch:
+    inputs:
+      port_payload:
+        required: true
+        description: "Port's payload (who triggered, context, etc...)"
+        type: string
+
+
+jobs:
+  manage_cluster: # Combine into a single job
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./terraform/create-eks-cluster
+
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      PORT_CLIENT_ID: ${{ secrets.PORT_CLIENT_ID }}
+      PORT_CLIENT_SECRET: ${{ secrets.PORT_CLIENT_SECRET }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Create a log message
+        uses: port-labs/port-github-action@v1
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          baseUrl: https://api.getport.io
+          operation: PATCH_RUN
+          runId: ${{fromJson(inputs.port_payload).context.runId}}
+          logMessage: "Initiating deletion of EKS cluster: ${{ fromJson(inputs.port_payload).payload.entity.properties.name }}."
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Format
+        run: terraform fmt
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Terraform Destroy
+        run: terraform destroy -auto-approve
+        env:
+          TF_VAR_cluster_name: ${{ github.event.inputs.cluster_name }}
+          TF_VAR_region: ${{ github.event.inputs.region }}
+          TF_VAR_port_run_id: ${{ fromJson(inputs.port_payload).context.runId }}
+
+      - name: Create a log message (post-action)
+        uses: port-labs/port-github-action@v1
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          baseUrl: https://api.getport.io
+          operation: PATCH_RUN
+          runId: ${{fromJson(inputs.port_payload).context.runId}}
+          logMessage: |
+            EKS cluster destruction has been completed: ${{ fromJson(inputs.port_payload).payload.entity.properties.name }}.
