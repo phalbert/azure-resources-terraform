@@ -13,9 +13,9 @@ jobs:
       - uses: port-labs/ocean-sail@v1
         with:
           type: 'jira'
-          port_client_id: ${{ secrets.OCEAN__PORT_CLIENT_ID }}
-          port_client_secret: ${{ secrets.OCEAN__PORT_CLIENT_SECRET }}
+          port_client_id: ${{ secrets.PORT_CLIENT_ID }}
+          port_client_secret: ${{ secrets.PORT_CLIENT_SECRET }}
           config: |
-            jira_host: ${{ secrets.OCEAN__INTEGRATION__CONFIG_JIRA_HOST }}
-            atlassian_user_email: ${{ secrets.OCEAN__INTEGRATION__CONFIG_ATLASSIAN_USER_EMAIL }}
-            atlassian_user_token: ${{ secrets.OCEAN__INTEGRATION__CONFIG_ATLASSIAN_USER_TOKEN }}
+            jira_host: ${{ secrets.JIRA_HOST }}
+            atlassian_user_email: ${{ secrets.ATLASSIAN_USER_EMAIL }}
+            atlassian_user_token: ${{ secrets.ATLASSIAN_USER_TOKEN }}
