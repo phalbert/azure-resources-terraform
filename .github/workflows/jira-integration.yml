@@ -16,6 +16,6 @@ jobs:
           port_client_id: ${{ secrets.PORT_CLIENT_ID }}
           port_client_secret: ${{ secrets.PORT_CLIENT_SECRET }}
           config: |
-            jira_host: ${{ secrets.JIRA_HOST }}
+            jira_host: ${{ vars.JIRA_HOST }}
             atlassian_user_email: ${{ secrets.ATLASSIAN_USER_EMAIL }}
             atlassian_user_token: ${{ secrets.ATLASSIAN_USER_TOKEN }}
