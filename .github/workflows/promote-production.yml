@@ -4,17 +4,17 @@ on:
   workflow_dispatch:
     inputs:
       entity:
-        description: 'The running service entity'
+        description: "The running service entity"
         required: true
-        default: 'service'
+        default: "service"
       production_service:
-        description: 'The service to promote to production'
+        description: "The service to promote to production"
         required: true
-        default: 'service'
+        default: "service"
       auto_merge_pr:
-        description: 'Auto merge the pull request'
+        description: "Auto merge the pull request"
         required: false
-        default: 'false'
+        default: "false"
       port_payload:
         required: true
         description: >-
@@ -170,7 +170,7 @@ jobs:
           clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
           baseUrl: https://api.getport.io
           operation: PATCH_RUN
-          status: 'failure'
+          status: "failure"
           runId: ${{ fromJson(inputs.port_payload).runId }}
           logMessage: |
             The promotion of the image to production failed.
@@ -182,8 +182,6 @@ jobs:
           clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
           baseUrl: https://api.getport.io
           operation: PATCH_RUN
-          status: 'success'
+          status: "success"
           runId: ${{fromJson(inputs.port_payload).runId}}
           logMessage: Completed promotion of deployment image from staging to production
-
-      
