@@ -20,7 +20,7 @@ on:
           Port's payload, including details for who triggered the action and
           general context (blueprint, run id, etc...)
 env:
-  auto_merge: ${{ fromJson(inputs.port_payload).payload.properties.auto_merge_pr }}
+  auto_merge: ${{ inputs.auto_merge_pr }}
 jobs:
   promote-deployment:
     runs-on: ubuntu-latest
