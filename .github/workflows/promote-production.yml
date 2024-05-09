@@ -102,7 +102,7 @@ jobs:
           title: "[Promotion] Update production image for ${{ fromJson(inputs.entity).service_name }} to latest staging image"
           body: |
             Update report
-            - **Service**: ${{ fromJson(inputs.port_payload).payload.entity.title }}
+            - **Service**: ${{ fromJson(inputs.entity).serrvice_name }}
             - **Production Runtime**: ${{ fromJson(inputs.production_service).title }}
             - **Staging Image Used**: ${{ fromJson(inputs.entity).version }}
             - **Manifest File Path**: ${{ fromJson(inputs.production_service).properties.gitPath }}
