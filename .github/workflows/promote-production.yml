@@ -63,7 +63,7 @@ jobs:
           logMessage: "Updating the production image..."
           relations: |
             {
-              "version": "${{ fromJson(inputs.entity).relations.image }}"
+              "image": "${{ fromJson(inputs.entity).relations.image }}"
             }
 
       - name: Inform Port about pull request creation status - Success
