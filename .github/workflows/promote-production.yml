@@ -99,10 +99,10 @@ jobs:
           author: ${{ github.actor }} <${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com>
           signoff: false
           branch: deployment/${{ fromJson(inputs.port_payload).runId }}
-          title: "[Promotion] Update production image for ${{ fromJson(inputs.entity).service_name }} to latest staging image"
+          title: "[Promotion] Update production image for ${{ fromJson(inputs.entity).relations.service }} to latest staging image"
           body: |
             Update report
-            - **Service**: ${{ fromJson(inputs.entity).service_name }}
+            - **Service**: ${{ fromJson(inputs.entity).relations.service }}
             - **Production Runtime**: ${{ fromJson(inputs.production_service).title }}
             - **Staging Image Used**: ${{ fromJson(inputs.entity).relations.image }}
             - **Manifest File Path**: ${{ fromJson(inputs.production_service).properties.gitPath }}
