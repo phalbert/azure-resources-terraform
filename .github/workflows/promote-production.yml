@@ -3,6 +3,14 @@ name: Promote Production
 on:
   workflow_dispatch:
     inputs:
+      production_service:
+        description: 'The service to promote to production'
+        required: true
+        default: 'service'
+      auto_merge_pr:
+        description: 'Auto merge the pull request'
+        required: false
+        default: 'false'
       port_payload:
         required: true
         description: >-
