@@ -175,7 +175,7 @@ jobs:
           logMessage: |
             The promotion of the image to production failed.
 
-      - name: Create a log message (post-action)
+      - name: Inform Port about action completion
         uses: port-labs/port-github-action@v1
         with:
           clientId: ${{ secrets.PORT_CLIENT_ID }}
