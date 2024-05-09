@@ -3,6 +3,10 @@ name: Promote Production
 on:
   workflow_dispatch:
     inputs:
+      entity:
+        description: 'The running service entity'
+        required: true
+        default: 'service'
       production_service:
         description: 'The service to promote to production'
         required: true
