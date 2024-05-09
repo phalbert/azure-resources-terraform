@@ -93,7 +93,7 @@ jobs:
         id: create-pr
         uses: peter-evans/create-pull-request@v6
         with:
-          token: ${{ secrets.CREATOR_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: Update ${{ fromJson(inputs.port_payload).payload.entity.title }}  production image to latest staging image
           committer: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
           author: ${{ github.actor }} <${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com>
