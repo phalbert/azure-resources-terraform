@@ -14,7 +14,7 @@ spec:
         app: bard
     spec:
       containers:
-        - image: messenger_v2
+        - image: bard:v3
           name: my-app
           ports:
             - containerPort: 80
