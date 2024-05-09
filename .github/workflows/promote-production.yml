@@ -34,21 +34,8 @@ jobs:
           clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
           baseUrl: https://api.getport.io
           operation: PATCH_RUN
-          runId: ${{ fromJson(inputs.port_payload).context.runId }}
+          runId: ${{ fromJson(inputs.port_payload).runId }}
           logMessage: "About to promote deployment image from staging to production..."
-
-      - name: Get the Staging Runtime
-        id: get-staging
-        uses: port-labs/port-github-action@v1
-        with:
-          clientId: ${{ secrets.PORT_CLIENT_ID }}
-          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
-          baseUrl: https://api.getport.io
-          operation: GET
-          blueprint: running_service
-          identifier: ${{ fromJson(inputs.port_payload).payload.entity.relations.test_runtime }}
-          runId: ${{ fromJson(inputs.port_payload).context.runId }}
-          logMessage: "Getting the current staging runtime..."
 
       - name: Get the Staging Image
         id: get-staging-image
@@ -59,24 +46,24 @@ jobs:
           baseUrl: https://api.getport.io
           operation: GET
           blueprint: image
-          identifier: ${{ fromJson(steps.get-staging.outputs.entity).relations.image }}
-          runId: ${{ fromJson(inputs.port_payload).context.runId }}
+          identifier: ${{ fromJson(inputs.entity).relations.image }}
+          runId: ${{ fromJson(inputs.port_payload).runId }}
           logMessage: "Getting the current staging image..."
 
-      - name: Set the production image
+      - name: Set the production running service image version
         id: set-production
         uses: port-labs/port-github-action@v1
         with:
           clientId: ${{ secrets.PORT_CLIENT_ID }}
           clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
           operation: UPSERT
-          identifier: ${{ fromJson(inputs.port_payload).payload.entity.relations.prod_runtime }}
+          identifier: ${{ fromJson(inputs.production_service).identifier }}
           blueprint: running_service
-          runId: ${{ fromJson(inputs.port_payload).context.runId }}
+          runId: ${{ fromJson(inputs.port_payload).runId }}
           logMessage: "Updating the production image..."
           relations: |
             {
-              "image": "${{ fromJson(steps.get-staging.outputs.entity).relations.image }}"
+              "version": "${{ fromJson(inputs.entity).version }}"
             }
 
       - name: Inform Port about pull request creation status - Success
@@ -87,7 +74,7 @@ jobs:
           clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
           baseUrl: https://api.getport.io
           operation: PATCH_RUN
-          runId: ${{ fromJson(inputs.port_payload).context.runId }}
+          runId: ${{ fromJson(inputs.port_payload).runId }}
           logMessage: |
             Opening a pull request to update the production image
 
@@ -101,7 +88,7 @@ jobs:
           operation: GET
           blueprint: running_service
           identifier: ${{ fromJson(inputs.port_payload).payload.entity.relations.prod_runtime }}
-          runId: ${{ fromJson(inputs.port_payload).context.runId }}
+          runId: ${{ fromJson(inputs.port_payload).runId }}
           logMessage: "Getting the current production manifest runtime path..."
 
       - uses: actions/checkout@v4
@@ -113,7 +100,7 @@ jobs:
         run: |
           # Update the manifest file to the production image version.
           manifest_file=${{ fromJson(steps.get-prod-runtime.outputs.entity).properties.gitPath }}
-          yq -i eval '${{ env.IMAGE_PROPERTY_PATH }} = "${{ fromJson(steps.get-staging-image.outputs.entity).title }}"' $manifest_file
+          yq -i eval '${{ env.IMAGE_PROPERTY_PATH }} = "${{ fromJson(inputs.entity).version }}"' $manifest_file
 
       - name: Create Pull Request
         id: create-pr
@@ -124,17 +111,17 @@ jobs:
           committer: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
           author: ${{ github.actor }} <${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com>
           signoff: false
-          branch: deployment/${{ fromJson(inputs.port_payload).context.runId }}
-          title: "[Promotion] Update production image for ${{ fromJson(inputs.port_payload).payload.entity.title }} to latest staging image"
+          branch: deployment/${{ fromJson(inputs.port_payload).runId }}
+          title: "[Promotion] Update production image for ${{ fromJson(inputs.entity).service_name }} to latest staging image"
           body: |
             Update report
             - **Service**: ${{ fromJson(inputs.port_payload).payload.entity.title }}
             - **Production Runtime**: ${{ fromJson(steps.get-prod-runtime.outputs.entity).title }}
-            - **Staging Image Used**: ${{ fromJson(steps.get-staging.outputs.entity).relations.image }}
+            - **Staging Image Used**: ${{ fromJson(inputs.entity).version }}
             - **Manifest File Path**: ${{ fromJson(steps.get-prod-runtime.outputs.entity).properties.gitPath }}
             - Auto-generated by [port-actions][1] 
 
-            [1]: https://app.getport.io/organization/run?runId=${{ fromJson(inputs.port_payload).context.runId }}
+            [1]: https://app.getport.io/organization/run?runId=${{ fromJson(inputs.port_payload).runId }}
           labels: |
             deployment
             automated pr
@@ -148,7 +135,7 @@ jobs:
           clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
           baseUrl: https://api.getport.io
           operation: PATCH_RUN
-          runId: ${{ fromJson(inputs.port_payload).context.runId }}
+          runId: ${{ fromJson(inputs.port_payload).runId }}
           logMessage: |
             A pull request has been opened to update the production image: ${{ steps.create-pr.outputs.pull-request-url }}
 
@@ -185,7 +172,7 @@ jobs:
           clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
           baseUrl: https://api.getport.io
           operation: PATCH_RUN
-          runId: ${{fromJson(github.event.inputs.port_payload).context.runId}}
+          runId: ${{fromJson(github.event.inputs.port_payload).runId}}
           logMessage: "Pull request merge was ${{ env.merge_status }}"
 
       - name: Inform Port about pull request creation status - Failure
@@ -196,6 +183,6 @@ jobs:
           clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
           baseUrl: https://api.getport.io
           operation: PATCH_RUN
-          runId: ${{ fromJson(inputs.port_payload).context.runId }}
+          runId: ${{ fromJson(inputs.port_payload).runId }}
           logMessage: |
             The promotion of the image to production failed.
