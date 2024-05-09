@@ -170,7 +170,7 @@ jobs:
           clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
           baseUrl: https://api.getport.io
           operation: PATCH_RUN
-          status: "failure"
+          status: "FAILURE"
           runId: ${{ fromJson(inputs.port_payload).runId }}
           logMessage: |
             The promotion of the image to production failed.
@@ -182,6 +182,6 @@ jobs:
           clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
           baseUrl: https://api.getport.io
           operation: PATCH_RUN
-          status: "success"
+          status: "SUCCESS"
           runId: ${{fromJson(inputs.port_payload).runId}}
           logMessage: Completed promotion of deployment image from staging to production
