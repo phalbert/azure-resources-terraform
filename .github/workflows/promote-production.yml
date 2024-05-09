@@ -87,7 +87,7 @@ jobs:
         run: |
           # Update the manifest file to the production image version.
           manifest_file=${{ fromJson(inputs.production_service).properties.gitPath }}
-          yq -i eval '${{ env.IMAGE_PROPERTY_PATH }} = "${{ fromJson(inputs.entity).relations.image }}"' $manifest_file
+          yq -i eval '${{ env.IMAGE_PROPERTY_PATH }} = "${{ fromJson(steps.get-staging-image.outputs.entity).title }}"' $manifest_file
 
       - name: Create Pull Request
         id: create-pr
