@@ -183,7 +183,7 @@ jobs:
           baseUrl: https://api.getport.io
           operation: PATCH_RUN
           status: 'success'
-          runId: ${{fromJson(inputs.port_payload).context.runId}}
+          runId: ${{fromJson(inputs.port_payload).runId}}
           logMessage: Completed promotion of deployment image from staging to production
 
       
