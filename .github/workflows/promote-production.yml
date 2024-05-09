@@ -128,7 +128,7 @@ jobs:
       - name: Merge Pull Request
         if: ${{ env.auto_merge == 'true' && steps.create-pr.outcome == 'success' }}
         env:
-          GH_TOKEN: ${{ secrets.CREATOR_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
           PR_URL: ${{ steps.create-pr.outputs.pull-request-number }}
           pr_number: ${{ steps.create-pr.outputs.pull-request-number }}
         run: |
