@@ -107,7 +107,7 @@ jobs:
           git clone \
             --depth=1 \
             --branch=$DEFAULT_BRANCH \
-            https://${{ secrets.CREATOR_TOKEN }}@github.com/$REPOSITORY \
+            https://${{ secrets.GH_TOKEN }}@github.com/$REPOSITORY \
             $FOLDER
 
           cd $FOLDER
@@ -140,7 +140,7 @@ jobs:
           # Capture the entire curl output into a variable
           curl_response=$(curl -X POST \
             -H "Accept: application/vnd.github.v3+json" \
-            -H "Authorization: token ${{ secrets.CREATOR_TOKEN }}" \
+            -H "Authorization: token ${{ secrets.GH_TOKEN }}" \
             https://api.github.com/repos/${{ env.REPO_INFO }}/pulls \
             -d '{
               "title": "chore: update production image to ${{ env.STAGING_IMAGE }}",

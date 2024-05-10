@@ -53,7 +53,7 @@ jobs:
         id: create-pr
         uses: peter-evans/create-pull-request@v6
         with:
-          token: ${{ secrets.CREATOR_TOKEN }}
+          token: ${{ secrets.GH_TOKEN }}
           commit-message: Added ${{ inputs.bucket_name }} s3 bucket crossplane manifest
           committer: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
           author: ${{ github.actor }} <${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com>
