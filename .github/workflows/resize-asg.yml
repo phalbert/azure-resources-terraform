@@ -54,5 +54,6 @@ jobs:
           clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
           baseUrl: https://api.getport.io
           operation: PATCH_RUN
+          status: "SUCCESS"
           runId: ${{fromJson(inputs.port_payload).context.runId}}
           logMessage: Resized EC2 Auto Scaling Group ${{ fromJson(inputs.port_payload).payload.entity.title }} to ${{ github.event.inputs.desired_capacity }} instances

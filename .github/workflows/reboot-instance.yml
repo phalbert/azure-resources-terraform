@@ -39,5 +39,6 @@ jobs:
           clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
           baseUrl: https://api.getport.io
           operation: PATCH_RUN
+          status: "SUCCESS"
           runId: ${{fromJson(inputs.port_payload).context.runId}}
           logMessage: EC2 instance with ID ${{ fromJson(inputs.port_payload).payload.entity.identifier }} rebooted successfully

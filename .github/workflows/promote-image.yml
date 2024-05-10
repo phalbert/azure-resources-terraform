@@ -170,6 +170,7 @@ jobs:
           clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
           baseUrl: https://api.getport.io
           operation: PATCH_RUN
+          status: "SUCCESS"
           runId: ${{ fromJson(inputs.port_payload).context.runId }}
           logMessage: |
             A pull request has been opened to update the production image: ${{ steps.create-pr.outputs.html_url }}
@@ -182,6 +183,7 @@ jobs:
           clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
           baseUrl: https://api.getport.io
           operation: PATCH_RUN
+          status: "FAILURE"
           runId: ${{ fromJson(inputs.port_payload).context.runId }}
           logMessage: |
             The promotion of the image to production failed.
