@@ -86,6 +86,7 @@ jobs:
           clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
           baseUrl: https://api.getport.io
           operation: PATCH_RUN
+          status: "SUCCESS"
           runId: ${{fromJson(inputs.port_payload).context.runId}}
           logMessage: "${
             if eq(github.event.inputs.action, 'apply')
