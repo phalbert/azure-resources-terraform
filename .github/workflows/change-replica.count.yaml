@@ -1,0 +1,105 @@
+name: Change Replica Count
+
+on:
+  workflow_dispatch:
+    inputs:
+      replica_count:
+        description: The new replica count for the deployment
+        required: true
+        type: string
+      auto_merge:
+        description: Whether the created PR should be merged automatically
+        required: true
+        type: boolean
+      port_payload:
+        required: true
+        description: >-
+          Port's payload, including details for who triggered the action and
+          general context (blueprint, run id, etc...)
+jobs:
+  change-replica-count:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Inform execution of request to change replica count
+        uses: port-labs/port-github-action@v1
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          baseUrl: https://api.getport.io
+          operation: PATCH_RUN
+          runId: ${{fromJson(github.event.inputs.port_payload).context.runId}}
+          logMessage: "About to change replica count in deployment manifest..."
+
+      - uses: actions/checkout@v3
+      - name: Create PR
+        id: create-pr
+        uses: fjogeleit/yaml-update-action@main
+        with:
+          valueFile: '<DEPLOYMENT-MANIFEST-PATH>'  ## replace value
+          propertyPath: '<REPLICA-PROPERTY-PATH>' ## replace value
+          value: "!!int '${{ fromJson(github.event.inputs.replica_count) }}'"  ## using the yaml tag (!!int 'X') to convert the string to int
+          commitChange: true
+          token: ${{ secrets.MY_GITHUB_TOKEN }}
+          targetBranch: main
+          masterBranchName: main
+          createPR: true
+          branch: deployment/${{ fromJson(github.event.inputs.port_payload).context.runId }}
+          message: 'Update deployment replica to ${{ github.event.inputs.replica_count }}'
+          
+      - name: Inform Port about pull request creation status - Success
+        if: steps.create-pr.outcome == 'success'
+        uses: port-labs/port-github-action@v1
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          baseUrl: https://api.getport.io
+          operation: PATCH_RUN
+          runId: ${{ fromJson(github.event.inputs.port_payload).context.runId }}
+          logMessage: |
+            'The creation of PR was successful: ${{fromJson(steps.create-pr.outputs.pull_request).html_url}}'
+          link: '["${{fromJson(steps.create-pr.outputs.pull_request).html_url}}"]'
+      
+      - name: Inform Port about pull request creation status - Failure
+        if: steps.create-pr.outcome != 'success'
+        uses: port-labs/port-github-action@v1
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          baseUrl: https://api.getport.io
+          operation: PATCH_RUN
+          runId: ${{ fromJson(github.event.inputs.port_payload).context.runId }}
+          logMessage: |
+            The creation of PR was not successful.
+  
+      - name: Merge Pull Request
+        if: ${{ github.event.inputs.auto_merge == 'true' && steps.create-pr.outcome == 'success' }}
+        env:
+          GH_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+          PR_URL: ${{ fromJson(steps.create-pr.outputs.pull_request).url }}
+        run: |
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -X PUT \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            "$PR_URL/merge")
+
+          echo "HTTP Status: $HTTP_STATUS"
+
+          if [ $HTTP_STATUS -eq 200 ]; then
+            echo "Pull request merged successfully."
+            echo "merge_status=successful" >> $GITHUB_ENV
+          else
+            echo "Failed to merge PR. HTTP Status: $HTTP_STATUS"
+            echo "merge_status=unsuccessful" >> $GITHUB_ENV
+          fi
+
+      - name: Inform completion of replica update operation to Port
+        if: ${{ github.event.inputs.auto_merge == 'true' }}
+        uses: port-labs/port-github-action@v1
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          baseUrl: https://api.getport.io
+          operation: PATCH_RUN
+          runId: ${{fromJson(github.event.inputs.port_payload).context.runId}}
+          logMessage: 'Pull request merge was ${{ env.merge_status }}'
