@@ -11,7 +11,7 @@ on:
         description: Whether the created PR should be merged automatically
         required: true
         type: boolean
-      port_payload:
+      context:
         required: true
         description: >-
           Port's payload, including details for who triggered the action and
@@ -27,7 +27,7 @@ jobs:
           clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
           baseUrl: https://api.getport.io
           operation: PATCH_RUN
-          runId: ${{fromJson(github.event.inputs.port_payload).context.runId}}
+          runId: ${{fromJson(inputs.context).runId}}
           logMessage: "About to rollback deployment image in argocd..."
 
       - uses: actions/checkout@v3
@@ -43,7 +43,7 @@ jobs:
           targetBranch: main
           masterBranchName: main
           createPR: true
-          branch: deployment/${{ fromJson(github.event.inputs.port_payload).context.runId }}
+          branch: deployment/${{ fromJson(inputs.context).runId }}
           message: "Update deployment image to ${{ github.event.inputs.image }}"
 
       - name: Inform Port about pull request creation status - Success
@@ -54,7 +54,7 @@ jobs:
           clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
           baseUrl: https://api.getport.io
           operation: PATCH_RUN
-          runId: ${{ fromJson(github.event.inputs.port_payload).context.runId }}
+          runId: ${{ fromJson(inputs.context).runId }}
           logMessage: |
             'The creation of PR was successful: ${{fromJson(steps.create-pr.outputs.pull_request).html_url}}'
           link: '["${{fromJson(steps.create-pr.outputs.pull_request).html_url}}"]'
@@ -67,7 +67,7 @@ jobs:
           clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
           baseUrl: https://api.getport.io
           operation: PATCH_RUN
-          runId: ${{ fromJson(github.event.inputs.port_payload).context.runId }}
+          runId: ${{ fromJson(inputs.context).runId }}
           logMessage: |
             The creation of PR was not successful.
 
@@ -101,5 +101,5 @@ jobs:
           clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
           baseUrl: https://api.getport.io
           operation: PATCH_RUN
-          runId: ${{fromJson(github.event.inputs.port_payload).context.runId}}
+          runId: ${{fromJson(inputs.context).runId}}
           logMessage: "Pull request merge was ${{ env.merge_status }}"
