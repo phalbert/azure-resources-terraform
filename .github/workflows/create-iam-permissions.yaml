@@ -72,6 +72,7 @@ jobs:
           clientId: ${{ secrets.PORT_CLIENT_ID }}
           clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
           operation: PATCH_RUN
+          status: "SUCCESS"
           runId: ${{ fromJson(inputs.port_payload).context.runId}}
           logMessage: |
             Created permission for the AWS resource "${{ fromJson(inputs.port_payload).context.entity }}"🚀
