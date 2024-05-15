@@ -1,0 +1,79 @@
+name: Create permissions for AWS resource
+on:
+  workflow_dispatch:
+    inputs:
+      port_payload:
+        type: string
+        required: true
+        description: The Port Payload for triggering this action                
+
+jobs:
+  create-iam-permissions:
+    name: Create IAM permissions
+    runs-on: ubuntu-latest
+    env:
+      POLICY_NAME: Permission-${{github.run_id}}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          persist-credentials: true
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Create JSON for permissions
+        id: create-jsons
+        run: |
+          permissions=$(echo '${{ inputs.port_payload }}' | jq -c '.payload.properties.permissions')
+          echo "PERMISSIONS_ARRAY=${permissions}" >> $GITHUB_OUTPUT
+          jq -r --argjson permissions "${permissions}" --arg resource "${{fromJson(inputs.port_payload).context.entity}}/*" '.Statement[0].Action=$permissions | .Statement[0].Resource=$resource' .github/templates/iamPolicyDocument.json > temp_policy_document.json
+          jq -r --arg aws_acc_id "${{ secrets.AWS_ACCOUNT_ID }}" '.Statement[0].Principal.AWS="arn:aws:iam::"+$aws_acc_id+":root"' .github/templates/iamTrustPolicy.json > temp_trust_policy.json
+      - name: Apply policies and attachments
+        id: apply-policies
+        run: |
+          # Create the policy
+          policy_arn=$(aws iam create-policy --policy-name $POLICY_NAME --policy-document file://temp_policy_document.json --no-cli-pager | jq '.Policy.Arn')
+          echo ${policy_arn}
+          echo "POLICY_ARN=${policy_arn}" >> $GITHUB_OUTPUT
+          # Create the role with assume-role policy
+          echo "ROLE_ARN=$(aws iam create-role --role-name $POLICY_NAME --assume-role-policy-document file://temp_trust_policy.json --no-cli-pager | jq '.Role.Arn')" >> $GITHUB_OUTPUT
+          # Attach policy to the role
+          aws iam attach-role-policy --role-name $POLICY_NAME --policy-arn arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:policy/$POLICY_NAME
+      - name: Create varialbes
+        id: create-variables
+        run: |
+          echo "POLICY=$(cat temp_policy_document.json | jq -c '.')" >> $GITHUB_OUTPUT
+          echo "SIGN_IN_URL=https://signin.aws.amazon.com/switchrole?account=${{ secrets.AWS_ACCOUNT_ID }}&roleName=${{ env.POLICY_NAME }}&displayName=${{ env.POLICY_NAME }}" >> $GITHUB_OUTPUT
+      - name: "Report permission to Port 🚢"
+        uses: port-labs/port-github-action@v1
+        with:
+            clientId: ${{ secrets.PORT_CLIENT_ID }}
+            clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+            identifier: ${{ env.POLICY_NAME }}
+            title: ${{ env.POLICY_NAME }}
+            blueprint: provisioned_permissions
+            properties: |
+              {
+                "iam_policy": ${{ steps.create-variables.outputs.POLICY }},
+                "requester": "${{ fromJson(inputs.port_payload).trigger.by.user.email }}",
+                "sign_in_url": "${{ steps.create-variables.outputs.SIGN_IN_URL }}",
+                "role_arn": ${{ steps.apply-policies.outputs.ROLE_ARN }},
+                "policy_arn": ${{ steps.apply-policies.outputs.POLICY_ARN }}
+              }
+            relations: |
+              {
+                "aws_resource": "${{ fromJson(inputs.port_payload).context.entity }}",
+                "permissions": ${{ steps.create-jsons.outputs.PERMISSIONS_ARRAY }}
+              }
+      - uses: port-labs/port-github-action@v1
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          operation: PATCH_RUN
+          runId: ${{ fromJson(inputs.port_payload).context.runId}}
+          logMessage: |
+            Created permission for the AWS resource "${{ fromJson(inputs.port_payload).context.entity }}"🚀
+            Requester for this permission is: ${{ fromJson(inputs.port_payload).trigger.by.user.email }}
+            The sign-in URL: ${{ steps.create-variables.outputs.SIGN_IN_URL }}
