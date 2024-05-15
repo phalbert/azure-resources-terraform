@@ -1,0 +1,45 @@
+name: Create Repository Secret
+
+on:
+  workflow_dispatch:
+    inputs:
+      secret_key:
+        type: string
+        description: Name of the secret's key
+      secret_value:
+        type: string
+        description: value of the secret
+      context:
+        required: false
+        description:
+          Who triggered the action and general context (blueprint, run id, etc...)
+        type: string
+
+jobs:
+  create_secret:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: gliech/create-github-secret-action@v1
+        with:
+          name: ${{ inputs.secret_key }}
+          value: ${{ inputs.secret_value }}
+          pa_token: ${{ secrets.CREATOR_TOKEN }}
+
+      - name: UPSERT Entity
+        uses: port-labs/port-github-action@v1
+        with:
+          identifier: ${{ inputs.secret_key }}
+          title: ${{ inputs.secret_key }}
+          team: "[]"
+          icon: DefaultBlueprint
+          blueprint: ${{ fromJson(inputs.context).blueprint }}
+          properties: |-
+            {
+              "secret_key": "${{ inputs.secret_key }}",
+              "secret_value": "${{ inputs.secret_value }}"
+            }
+          relations: "{}"
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          operation: UPSERT
+          runId: ${{ fromJson(inputs.context).runId }}
