@@ -1,0 +1,100 @@
+name: Lock Service in Port
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: string
+        required: true
+      reason:
+        type: string
+        required: true
+      port_payload:
+        required: true
+        description: Port's payload, including details for who triggered the action and
+          general context (blueprint, run id, etc...)
+        type: string
+jobs:
+  lock-service-in-port:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Inform execution of request to lock service in Port
+        uses: port-labs/port-github-action@v1
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          baseUrl: https://api.getport.io
+          operation: PATCH_RUN
+          runId: ${{fromJson(github.event.inputs.port_payload).context.runId}}
+          logMessage: "About to lock a service in ${{ github.event.inputs.environment }} environment ..."
+          
+      - name: Lock Service in Production
+        id: lock-prod-service
+        if: ${{ github.event.inputs.environment == 'Production' }}
+        uses: port-labs/port-github-action@v1
+        with:
+          identifier: ${{ fromJson(github.event.inputs.port_payload).context.entity }}
+          title: ${{ fromJson(github.event.inputs.port_payload).payload.entity.title }}
+          blueprint: ${{ fromJson(github.event.inputs.port_payload).context.blueprint }}
+          properties: |-
+            {
+              "locked_in_prod": true,
+              "locked_reason_prod": "${{ github.event.inputs.reason }}"
+            }
+          relations: "{}"
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          baseUrl: https://api.getport.io
+          operation: UPSERT
+          runId: ${{fromJson(inputs.port_payload).context.runId}}
+
+      - name: Lock Service in Development
+        id: lock-test-service
+        if: ${{ github.event.inputs.environment == 'Development' }}
+        uses: port-labs/port-github-action@v1
+        with:
+          identifier: ${{ fromJson(github.event.inputs.port_payload).context.entity }}
+          title: ${{ fromJson(github.event.inputs.port_payload).payload.entity.title }}
+          blueprint: ${{ fromJson(github.event.inputs.port_payload).context.blueprint }}
+          properties: |-
+            {
+              "locked_in_test": true,
+              "locked_reason_test": "${{ github.event.inputs.reason }}"
+            }
+          relations: "{}"
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          baseUrl: https://api.getport.io
+          operation: UPSERT
+          runId: ${{fromJson(inputs.port_payload).context.runId}}
+          
+      - name: Send Slack Announcement
+        if: ${{ steps.lock-prod-service.outcome == 'success' || steps.lock-test-service.outcome == 'success' }}
+        id: slack
+        uses: slackapi/slack-github-action@v1.25.0
+        with:
+          channel-id: '${{ secrets.SLACK_CHANNEL_ID }}'
+          slack-message: "*Port Service Locked*\n\n*Service Name*: ${{ fromJson(github.event.inputs.port_payload).payload.entity.title }}\n*Link*: https://app.getport.io/${{ fromJson(github.event.inputs.port_payload).context.blueprint }}Entity?identifier=${{ fromJson(github.event.inputs.port_payload).context.entity }}\n*Environment*: ${{ github.event.inputs.environment }}\n*Reporter*: ${{ fromJson(github.event.inputs.port_payload).trigger.by.user.email }}\n*Reason*: ${{ github.event.inputs.reason }}"
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+
+      - name: Inform Port about outcome of sending slack alert
+        if: ${{ steps.lock-prod-service.outcome == 'success' || steps.lock-test-service.outcome == 'success' }}
+        uses: port-labs/port-github-action@v1
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          baseUrl: https://api.getport.io
+          operation: PATCH_RUN
+          runId: ${{fromJson(github.event.inputs.port_payload).context.runId}}
+          logMessage: "The lock operation has been completed successfully and the details is being broadcasted to Slack. The outcome of the Slack announcement is ${{ steps.slack.outcome }}"
+          
+      - name: Inform unsuccessful service locking in Port
+        if: ${{ (steps.lock-prod-service.outcome != 'success' && steps.lock-prod-service.outcome != 'skipped') || (steps.lock-test-service.outcome != 'success' && steps.lock-test-service.outcome != 'skipped') }}
+        uses: port-labs/port-github-action@v1
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          baseUrl: https://api.getport.io
+          operation: PATCH_RUN
+          runId: ${{fromJson(inputs.port_payload).context.runId}}
+          logMessage: The attempt to lock the service was not successful
