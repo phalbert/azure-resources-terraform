@@ -17,7 +17,7 @@ on:
         description: "Description of the app"
         required: true
         default: "A simple app"
-      port_payload:
+      context:
         required: true
         description: "Port's payload (who triggered, context, etc...)"
         type: string
@@ -27,8 +27,8 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      PORT_CLIENT_ID: ${{ secrets.PORT_CLIENT_ID }}
-      PORT_CLIENT_SECRET: ${{ secrets.PORT_CLIENT_SECRET }}
+      PORT_RUN_ID: ${{ fromJson(github.event.inputs.context).runId }}
+      
 
     steps:
       - name: Create a log message (post-action)
@@ -38,7 +38,7 @@ jobs:
           clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
           baseUrl: https://api.getport.io
           operation: PATCH_RUN
-          runId: ${{fromJson(inputs.port_payload).context.runId}}
+          runId: ${{ env.PORT_RUN_ID }}
           logMessage: "Starting scaffolding of app: ${{ github.event.inputs.project_name }}"
 
       - name: Checkout code
@@ -69,7 +69,7 @@ jobs:
           clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
           baseUrl: https://api.getport.io
           operation: PATCH_RUN
-          runId: ${{fromJson(inputs.port_payload).context.runId}}
+          runId: ${{ env.PORT_RUN_ID }}
           logMessage: "Creating ECR repository: ${{ github.event.inputs.repo_name }}"
 
       - name: Configure AWS credentials
@@ -112,7 +112,7 @@ jobs:
           clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
           baseUrl: https://api.getport.io
           operation: PATCH_RUN
-          runId: ${{fromJson(inputs.port_payload).context.runId}}
+          runId: ${{ env.PORT_RUN_ID }}
           logMessage: "Creating repository for app: ${{ github.event.inputs.project_name }}"
 
       - name: Create GitHub Repository
@@ -142,7 +142,7 @@ jobs:
           clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
           baseUrl: https://api.getport.io
           operation: PATCH_RUN
-          runId: ${{fromJson(inputs.port_payload).context.runId}}
+          runId: ${{ env.PORT_RUN_ID }}
           logMessage: "Commiting new app files: ${{ github.event.inputs.project_name }}"
 
       - name: Commit files
@@ -166,5 +166,5 @@ jobs:
           baseUrl: https://api.getport.io
           operation: PATCH_RUN
           status: "SUCCESS"
-          runId: ${{fromJson(inputs.port_payload).context.runId}}
+          runId: ${{ env.PORT_RUN_ID }}
           logMessage: "Finished scaffolding of app: ${{ github.event.inputs.project_name }}"
