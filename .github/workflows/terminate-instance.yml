@@ -3,9 +3,9 @@ name: Terminate EC2 Instance
 on:
   workflow_dispatch: # Trigger this workflow manually
     inputs:
-      port_payload:
+      context:
         required: true
-        description: "Port's payload, including details for who triggered the action and general context (blueprint, run id, etc...)"
+        description: "Action and general context (blueprint, run id, etc...)"
         type: string
 
 jobs:
@@ -19,8 +19,8 @@ jobs:
           clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
           baseUrl: https://api.getport.io
           operation: PATCH_RUN
-          runId: ${{fromJson(inputs.port_payload).context.runId}}
-          logMessage: Configuring AWS credentials and terminating EC2 instance with ID ${{ fromJson(inputs.port_payload).payload.entity.identifier }}
+          runId: ${{fromJson(inputs.context).runId}}
+          logMessage: Configuring AWS credentials and terminating EC2 instance with ID ${{ fromJson(inputs.context).entity.identifier }}
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -30,7 +30,7 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Terminate EC2 instance
-        run: aws ec2 terminate-instances --instance-ids ${{ fromJson(inputs.port_payload).payload.entity.identifier }}
+        run: aws ec2 terminate-instances --instance-ids ${{ fromJson(inputs.context).entity.identifier }}
 
       - name: Create a log message
         uses: port-labs/port-github-action@v1
@@ -39,5 +39,5 @@ jobs:
           clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
           baseUrl: https://api.getport.io
           operation: PATCH_RUN
-          runId: ${{fromJson(inputs.port_payload).context.runId}}
-          logMessage: EC2 instance with ID ${{ fromJson(inputs.port_payload).payload.entity.identifier }} terminated successfully
+          runId: ${{fromJson(inputs.context).runId}}
+          logMessage: EC2 instance with ID ${{ fromJson(inputs.context).entity.identifier }} terminated successfully
