@@ -14,11 +14,11 @@ spec:
         app: messenger
     spec:
       containers:
-        - image: messenger:v4
+        - image: '{"identifier":"messenger_v2","title":"messenger:v2","icon":"AWS","blueprint":"image","team":[],"properties":{"tags":["v1"],"link_to_the_commit":null,"link_to_the_pr":null,"link_to_the_ci":null},"relations":{},"createdAt":"2024-04-03T11:50:54.067Z","createdBy":"google-oauth2|114166543937077906073","updatedAt":"2024-04-05T11:20:48.019Z","updatedBy":"google-oauth2|114166543937077906073"}'
           name: my-app
           ports:
             - containerPort: 80
           resources:
             limits:
-              cpu: "0.5"
-              memory: "512Mi"
+              cpu: '0.5'
+              memory: 512Mi
