@@ -1,0 +1,120 @@
+name: Approve and Apply Terraform Resource
+on:
+  workflow_dispatch:
+    inputs:
+      port_run_identifier:
+        type: string
+        required: true
+      artifact_identifier:
+        type: string
+        required: true
+      tf_plan_output:
+        type: string
+      port_context:
+        required: true
+        description: >-
+          Port's payload, including details for who triggered the action and
+          general context (blueprint, run id, etc...)
+jobs:
+  apply-and-provision-resource:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Log starting of cloud resource creation 
+        uses: port-labs/port-github-action@v1
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          operation: PATCH_RUN
+          runId: ${{fromJson(inputs.port_context).runId}}
+          logMessage: |
+              About to provision a cloud resource previously planned in Port with run ID: ${{ github.event.inputs.port_run_identifier }} ... ⛴️
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: '${{ secrets.AWS_ACCESS_KEY_ID }}'
+          aws-secret-access-key: '${{ secrets.AWS_SECRET_ACCESS_KEY }}'
+          aws-session-token: '${{ secrets.AWS_SESSION_TOKEN }}'
+          aws-region: '${{ secrets.AWS_REGION }}'
+
+
+      - name: Download Terraform plan artifact from the previous workflow run
+        run: |          
+          mkdir terraform-artifact
+          cd terraform-artifact
+          artifact_url=$(curl -sSL -I -H "Authorization: Bearer ${{ secrets.MY_GITHUB_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/actions/artifacts/${{ github.event.inputs.artifact_identifier }}/zip" | grep -i "location:" | awk '{print $2}' | tr -d '\r')
+          curl -sSL -o terraform-artifact.zip "$artifact_url"
+          if [ $? -ne 0 ]; then
+            echo "Failed to download artifact. Exiting."
+            exit 1
+          fi
+          unzip -qq terraform-artifact.zip
+          if [ $? -ne 0 ]; then
+            echo "Failed to extract artifact. Exiting."
+            exit 1
+          fi
+        
+      - name: List contents of working directory
+        run: ls -la terraform-artifact
+        
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.7.5
+
+      - name: Make provider binary executable
+        run: |
+          cd terraform-artifact
+          chmod +x .terraform/providers/registry.terraform.io/hashicorp/aws/5.42.0/linux_amd64/terraform-provider-aws_v5.42.0_x5
+
+      - name: Terraform apply resource
+        id:   tf-apply
+        run: |
+          cd terraform-artifact
+          terraform apply tfplan-${{ github.event.inputs.port_run_identifier }}
+          
+      - name: Update Port on status of applying terraform resource (success)
+        uses: port-labs/port-github-action@v1
+        if: ${{steps.tf-apply.outcome == 'success'}}
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          operation: PATCH_RUN
+          runId: ${{fromJson(inputs.port_context).runId}}
+          logMessage: |
+              cloud resource successfully approved and provisioned ✅
+
+      - name: Get current timestamp
+        id: timestamp
+        run: echo "::set-output name=current_time::$(date -u +'%Y-%m-%dT%H:%M:%S.%3NZ')"
+
+      - name: Create cloud resource in Port
+        uses: port-labs/port-github-action@v1
+        if: ${{steps.tf-apply.outcome == 'success'}}
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          operation: UPSERT
+          identifier: ${{ fromJson(inputs.tf_plan_output).variables.bucket_name.value }}
+          blueprint: cloudResource
+          properties: |-
+            {
+              "type": "storage",
+              "provider": "AWS",
+              "region": "${{ secrets.AWS_REGION }}",
+              "link": "https://s3.console.aws.amazon.com/s3/buckets/${{ fromJson(inputs.tf_plan_output).variables.bucket_name.value }}",
+              "created_at": "${{ steps.timestamp.outputs.current_time }}"
+            }
+
+      - name: Update Port on status of applying terraform resource (failure)
+        uses: port-labs/port-github-action@v1
+        if: ${{steps.tf-apply.outcome != 'success'}}
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          operation: PATCH_RUN
+          runId: ${{fromJson(inputs.port_context).runId}}
+          logMessage: |
+              cloud resource could not be provisioned
