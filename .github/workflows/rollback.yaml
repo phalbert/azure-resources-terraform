@@ -34,7 +34,7 @@ jobs:
         id: create-pr
         uses: fjogeleit/yaml-update-action@main
         with:
-          valueFile: "deploy/prod/deployment.yaml" ## replace value
+          valueFile: "app/messenger/prod/deployment.yaml" ## replace value
           propertyPath: "spec.template.spec.containers[0].image" ## replace value
           value: "${{ github.event.inputs.image }}"
           commitChange: true
