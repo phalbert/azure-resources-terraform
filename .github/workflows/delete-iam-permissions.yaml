@@ -2,17 +2,21 @@ name: Delete IAM permissions for AWS resource
 on:
   workflow_dispatch:
     inputs:
-      port_payload:
+      properties:
         type: string
         required: true
-        description: The Port Payload for triggering this action                
+        description: The Port Payload for triggering this action
+      port_context:
+        type: string
+        required: true
+        description: The Port context for triggering this action                
 
 jobs:
   delete-permissions:
     name: Delete IAM permissions
     runs-on: ubuntu-latest
     env:
-      POLICY_ARN: ${{ fromJson(inputs.port_payload).context.entity.properties.policy_arn }}
+      POLICY_ARN: ${{ fromJson(inputs.port_context).entity.properties.policy_arn }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -27,17 +31,17 @@ jobs:
         id: delete-policies
         run: |
           # Detach the policy from the role
-          aws iam detach-role-policy --role-name ${{ fromJson(inputs.port_payload).context.entity.identifier }} --policy-arn ${{ env.POLICY_ARN }}
+          aws iam detach-role-policy --role-name ${{ fromJson(inputs.port_context).entity.identifier }} --policy-arn ${{ env.POLICY_ARN }}
           # Delete the policy
           aws iam delete-policy --policy-arn "${{ env.POLICY_ARN }}" --no-cli-pager
           # Delete the role
-          aws iam delete-role --role-name ${{ fromJson(inputs.port_payload).context.entity.identifier }} --no-cli-pager
+          aws iam delete-role --role-name ${{ fromJson(inputs.port_context).entity.identifier }} --no-cli-pager
       - name: "Delete permission from Port 🚢"
         uses: port-labs/port-github-action@v1
         with:
           clientId: ${{ secrets.PORT_CLIENT_ID }}
           clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
-          identifier: ${{ fromJson(inputs.port_payload).context.entity.identifier }}
+          identifier: ${{ fromJson(inputs.port_context).entity.identifier }}
           operation: DELETE
           blueprint: provisioned_permissions
       - uses: port-labs/port-github-action@v1
@@ -45,7 +49,7 @@ jobs:
           clientId: ${{ secrets.PORT_CLIENT_ID }}
           clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
           operation: PATCH_RUN
-          runId: ${{ fromJson(inputs.port_payload).context.runId}}
+          runId: ${{ fromJson(inputs.port_context).runId}}
           logMessage: |
-            Permission "${{ fromJson(inputs.port_payload).context.entity}}" has been deleted.
-            To get more information regarding this deletion, contact "${{ fromJson(inputs.port_payload).trigger.by.user.email }}".
+            Permission "${{ fromJson(inputs.port_context).entity.identifier }}" has been deleted.
+            To get more information regarding this deletion, contact "${{ fromJson(inputs.port_context).trigger.by.user.email }}".
