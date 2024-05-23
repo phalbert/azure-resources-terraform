@@ -42,7 +42,8 @@ terraform.rc
 
 test*
 
-templates
+# Ignore all .tf files in the templates directory
+templates/*.tf
 template-assets
 
 venv
