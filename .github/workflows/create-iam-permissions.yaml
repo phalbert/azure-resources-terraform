@@ -2,10 +2,14 @@ name: Create permissions for AWS resource
 on:
   workflow_dispatch:
     inputs:
-      port_payload:
+      properties:
         type: string
         required: true
-        description: The Port Payload for triggering this action                
+        description: The form inputs
+      port_context:
+        type: string
+        required: true
+        description: The Port context for triggering this action                  
 
 jobs:
   create-iam-permissions:
@@ -26,9 +30,10 @@ jobs:
       - name: Create JSON for permissions
         id: create-jsons
         run: |
-          permissions=$(echo '${{ inputs.port_payload }}' | jq -c '.properties.permissions')
+          permissions=$(echo '${{ inputs.properties }}' | jq -c '.permissions')
+          echo "${permissions}"
           echo "PERMISSIONS_ARRAY=${permissions}" >> $GITHUB_OUTPUT
-          jq -r --argjson permissions "${permissions}" --arg resource "${{fromJson(inputs.port_payload).context.entity}}/*" '.Statement[0].Action=$permissions | .Statement[0].Resource=$resource' .github/templates/iamPolicyDocument.json > temp_policy_document.json
+          jq -r --argjson permissions "${permissions}" --arg resource "${{fromJson(inputs.port_context).entity.identifier}}/*" '.Statement[0].Action=$permissions | .Statement[0].Resource=$resource' .github/templates/iamPolicyDocument.json > temp_policy_document.json
           jq -r --arg aws_acc_id "${{ secrets.AWS_ACCOUNT_ID }}" '.Statement[0].Principal.AWS="arn:aws:iam::"+$aws_acc_id+":root"' .github/templates/iamTrustPolicy.json > temp_trust_policy.json
       - name: Apply policies and attachments
         id: apply-policies
@@ -57,14 +62,14 @@ jobs:
             properties: |
               {
                 "iam_policy": ${{ steps.create-variables.outputs.POLICY }},
-                "requester": "${{ fromJson(inputs.port_payload).trigger.by.user.email }}",
+                "requester": "${{ fromJson(inputs.port_context).trigger.by.user.email }}",
                 "sign_in_url": "${{ steps.create-variables.outputs.SIGN_IN_URL }}",
                 "role_arn": ${{ steps.apply-policies.outputs.ROLE_ARN }},
                 "policy_arn": ${{ steps.apply-policies.outputs.POLICY_ARN }}
               }
             relations: |
               {
-                "aws_resource": "${{ fromJson(inputs.port_payload).context.entity }}",
+                "aws_resource": "${{ fromJson(inputs.port_context).entity.identifier }}",
                 "permissions": ${{ steps.create-jsons.outputs.PERMISSIONS_ARRAY }}
               }
       - uses: port-labs/port-github-action@v1
@@ -73,8 +78,8 @@ jobs:
           clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
           operation: PATCH_RUN
           status: "SUCCESS"
-          runId: ${{ fromJson(inputs.port_payload).context.runId}}
+          runId: ${{ fromJson(inputs.port_context).runId}}
           logMessage: |
-            Created permission for the AWS resource "${{ fromJson(inputs.port_payload).context.entity }}"🚀
-            Requester for this permission is: ${{ fromJson(inputs.port_payload).trigger.by.user.email }}
+            Created permission for the AWS resource "${{ fromJson(inputs.port_context).entity.identifier }}"🚀
+            Requester for this permission is: ${{ fromJson(inputs.port_context).trigger.by.user.email }}
             The sign-in URL: ${{ steps.create-variables.outputs.SIGN_IN_URL }}
