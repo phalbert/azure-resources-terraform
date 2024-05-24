@@ -7,9 +7,9 @@ on:
         description: "Message to send to service owners"
         required: true
         type: string
-      port_payload:
+      port_context:
         required: true
-        description: "Port's payload, including details for who triggered the action and general context (blueprint, run id, etc...)"
+        description: "Details about the action and general context (blueprint, run id, etc...)"
         type: string
 
 jobs:
@@ -21,8 +21,8 @@ jobs:
       - name: Run python script
         env:
           MESSAGE: ${{ github.event.inputs.message }}
-          SENDING_API: ${{ fromJson(github.event.inputs.port_payload).payload.entity.identifier }}
+          SENDING_API: ${{ fromJson(github.event.inputs.port_context).entity.identifier }}
           PORT_CLIENT_ID: ${{ secrets.PORT_CLIENT_ID }}
           PORT_CLIENT_SECRET: ${{ secrets.PORT_CLIENT_SECRET }}
         run: |
-          python3 ./scripts/send_slack_notifications.py
+          python3 ./scripts/broadcast_messages.py
