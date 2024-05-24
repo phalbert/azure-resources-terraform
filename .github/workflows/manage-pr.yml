@@ -3,12 +3,12 @@ name: Manage Pull Request
 on:
   workflow_dispatch:
     inputs:
-      action: # 'close' or 'action' -- make this a select in Port UI
+      action: 
         required: true
         type: string
-      port_payload:
+      port_context:
         required: true
-        description: "Port's payload, including details for who triggered the action and general context (blueprint, run id, etc...)"
+        description: "Details about the action and general context (blueprint, run id, etc...)"
         type: string
 
 jobs:
@@ -16,10 +16,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Inform starting of deletion
+        uses: port-labs/port-github-action@v1
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          operation: PATCH_RUN
+          runId: ${{ fromJson(inputs.port_context).runId }}
+          logMessage: |
+            Executing the ${{ github.event.inputs.action }} action on the GitHub pull request... ⛴️
+
       - name: Extract Repository and PR Number
         id: extract_info
         run: |
-          link="${{ fromJson(inputs.port_payload).payload.entity.properties.link }}"
+          link="${{ fromJson(inputs.port_context).entity.properties.link }}"
           repo_info=$(echo "$link" | sed 's|https://github.com/||' | awk -F'/' '{print $1 "/" $2}')
           pr_number=$(echo "$link" | awk -F'/' '{print $NF}')
 
@@ -58,7 +68,7 @@ jobs:
                 -d '{"event": "APPROVE"}')
             else
               result="400" # Invalid action code
-              result_message="Invalid action specified. Expected 'close' or 'merge'."
+              result_message="Invalid action specified. Expected 'close', 'approve' or 'merge'."
               echo $result_message
               exit 1
             fi
@@ -90,6 +100,6 @@ jobs:
           clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
           operation: PATCH_RUN
           baseUrl: https://api.getport.io
-          runId: ${{ fromJson(inputs.port_payload).context.runId }}
+          runId: ${{ fromJson(inputs.port_context).runId }}
           logMessage: |
             GitHub Action result for ${{ env.GITHUB_ACTION_TYPE }} action on PR ${{ env.PR_NUMBER }}: ${{ env.GITHUB_ACTION_RESULT_MESSAGE }}
