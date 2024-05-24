@@ -3,20 +3,30 @@ name: Nudge Pull Request Reviewers
 on:
   workflow_dispatch:
     inputs:
-      port_payload:
+      port_context:
         required: true
-        description: "Port's payload, including details for who triggered the action and general context (blueprint, run id, etc...)"
+        description: "Details about the action and general context (blueprint, run id, etc...)"
         type: string
 
 jobs:
-  nudge-pr-reviewers:
+  manage-pr:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Inform starting of deletion
+        uses: port-labs/port-github-action@v1
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          operation: PATCH_RUN
+          runId: ${{ fromJson(inputs.port_context).runId }}
+          logMessage: |
+            Starting workflow to nudge PR reviewers for PR:  ${{ fromJson(inputs.port_context).entity.title }} ... ⛴️
+            
       - name: Extract Repository and PR Number
         id: extract_info
         run: |
-          link="${{ fromJson(inputs.port_payload).payload.entity.properties.link }}"
+          link="${{ fromJson(inputs.port_context).entity.properties.link }}"
           repo_info=$(echo "$link" | sed 's|https://github.com/||' | awk -F'/' '{print $1 "/" $2}')
           pr_number=$(echo "$link" | awk -F'/' '{print $NF}')
 
@@ -33,12 +43,12 @@ jobs:
 
       - name: Send Slack Notification
         env:
-          PR_TITLE: ${{ fromJson(inputs.port_payload).payload.entity.title }}
+          PR_TITLE: ${{ fromJson(inputs.port_context).entity.title }}
         run: |
           reviews_json="${{ steps.get_reviewers.outputs.reviews_file_path }}"
           reviewers=$(jq -r '.[].user.login' $reviews_json | sort -u)
 
-          pr_title="${{ fromJson(inputs.port_payload).payload.entity.title }}"
+          pr_title="${{ fromJson(inputs.port_context).entity.title }}"
           
           echo "Reviewers: $reviewers"
           
@@ -89,7 +99,6 @@ jobs:
           
           curl -X POST -H 'Content-type: application/json' --data "$message_payload" ${{ secrets.SLACK_WEBHOOK_URL }}
           
-
       - name: Notify Port
         uses: port-labs/port-github-action@v1
         with:
@@ -97,6 +106,7 @@ jobs:
           clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
           operation: PATCH_RUN
           baseUrl: https://api.getport.io
-          runId: ${{ fromJson(inputs.port_payload).context.runId }}
+          runId: ${{ fromJson(inputs.port_context).runId }}
+          status: "SUCCESS"
           logMessage: |
-            Nudged PR reviewers for PR: ${{ env.REPO_INFO }}#${{ env.PR_NUMBER }}
+            GitHub Action completed! Sent slack message to PR reviewers for PR https://github.com/${{ env.REPO_INFO }}/pull/${{ env.PR_NUMBER }} ✅
