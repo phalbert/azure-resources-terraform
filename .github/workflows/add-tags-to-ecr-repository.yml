@@ -1,0 +1,67 @@
+name: Add tags to ECR repository
+on:
+  workflow_dispatch:
+    inputs:
+      repository:
+        type: string
+        required: true
+      tags:
+        type: string
+        required: true
+        description: 'Tags should be in key-value pairs like so: {"key": "value"}'
+      port_context:
+        required: true
+        description:
+          Action and general port_context (blueprint, run id, etc...)
+        type: string
+        
+jobs:
+  create-entity-in-port-and-update-run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create a log message
+        uses: port-labs/port-github-action@v1
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          baseUrl: https://api.getport.io
+          operation: PATCH_RUN
+          runId: ${{fromJson(inputs.port_context).runId}}
+          logMessage: Starting request to add tags to ECR repository
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        if: always()
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Install jq
+        run: sudo apt-get install jq
+
+      - name: Add Tags to ECR repository
+        env:
+          TAGS_JSON: ${{ inputs.tags }}
+        run: |
+          # Extract key-value pairs from the JSON object
+          # {
+          #   "env": "test",
+          #   "team": "beta"
+          # }
+
+          TAGS=$(echo "${TAGS_JSON}" | jq -r '. | to_entries[] | "Key=\(.key),Value=\(.value)"' | tr '\n' ' ')
+
+          aws ecr tag-resource \
+          --resource-arn arn:aws:ecr:${{ secrets.AWS_REGION }}:${{ secrets.AWS_ACCOUNT_ID }}:repository/${{ inputs.repository }} \
+          --tags ${TAGS}
+
+      - name: Create a log message
+        uses: port-labs/port-github-action@v1
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          baseUrl: https://api.getport.io
+          operation: PATCH_RUN
+          runId: ${{ fromJson(inputs.port_context).runId }}
+          logMessage: Finished adding tags to ECR repository
