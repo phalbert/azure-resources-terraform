@@ -13,8 +13,8 @@ jobs:
       - uses: port-labs/ocean-sail@v1
         with:
           type: 'linear'
-          port_client_id: ${{ secrets.OCEAN__PORT__CLIENT_ID }}
-          port_client_secret: ${{ secrets.OCEAN__PORT__CLIENT_SECRET }}
+          port_client_id: ${{ secrets.PORT_CLIENT_ID }}
+          port_client_secret: ${{ secrets.PORT_CLIENT_SECRET }}
           config: |
             datadog_base_url: https://api.datadoghq.eu          
             datadog_api_key: ${{ secrets.DATADOG_API_KEY }}
