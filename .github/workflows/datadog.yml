@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: port-labs/ocean-sail@v1
         with:
-          type: 'linear'
+          type: 'datadog'
           port_client_id: ${{ secrets.PORT_CLIENT_ID }}
           port_client_secret: ${{ secrets.PORT_CLIENT_SECRET }}
           config: |
