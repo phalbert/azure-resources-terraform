@@ -1,0 +1,61 @@
+name: Add Jenkinsfile to Repos
+
+on:
+  workflow_dispatch:  # Manual trigger
+
+jobs:
+  add_jenkinsfile:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Allow the action to create pull requests
+      pull-requests: write  # Allow the action to create pull requests
+
+    steps:
+      - name: Checkout Action Repository
+        uses: actions/checkout@v3
+
+      - name: Get List of Repositories
+        id: get_repos
+        uses: octokit/request-action@v2.x
+        with:
+          route: GET /orgs/{org}/repos
+          org: ${{ github.repository_owner }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create Pull Requests
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          for repo in ${{ fromJson(steps.get_repos.outputs.data) }}; do
+            repo_name="${repo.name}"
+            echo "Processing repository: $repo_name"
+
+            # Check if Jenkinsfile already exists
+            if curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $GITHUB_TOKEN" https://api.github.com/repos/${{ github.repository_owner }}/$repo_name/contents/Jenkinsfile; then
+              echo "Jenkinsfile already exists in $repo_name. Skipping..."
+              continue
+            fi
+
+            # Load Jenkinsfile template
+            jenkinsfile_content=$(cat Jenkinsfile.template)
+
+            # Create pull request
+            pr_body=$(cat <<EOF
+            This pull request adds a Jenkinsfile to enable Jenkins integration for this repository.
+
+            Please review the changes and merge if they are suitable.
+            EOF
+            )
+            payload=$(jq -n \
+              --arg msg "Add Jenkinsfile" \
+              --arg content "$jenkinsfile_content" \
+              --arg branch "main" \
+              '{message: $msg, content: $content, branch: $branch}'
+            )
+            curl -X PUT \
+              -H "Accept: application/vnd.github.v3+json" \
+              -H "Authorization: Bearer $GITHUB_TOKEN" \
+              -d "$payload" \
+              https://api.github.com/repos/${{ github.repository_owner }}/$repo_name/contents/Jenkinsfile
+          done
