@@ -1,0 +1,26 @@
+# sentry Exporter Workflow
+# This workflow responsible for running sentry exporter.
+# integration.config.sentryHost: Sentry host URL
+# integration.secrets.sentryToken: Sentry token
+# integration.config.sentryOrganization: Sentry organization
+
+on:
+    workflow_dispatch:
+    schedule:
+        - cron: '0 */1 * * *' # Determines the scheduled interval for this workflow. This example runs every hour.
+
+jobs:
+    run-integration:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Run sentry Integration
+              uses: port-labs/ocean-sail@v1
+              with:
+                type: sentry
+                port_client_id: ${{ secrets.PORT_CLIENT_ID }}
+                port_client_secret: ${{ secrets.PORT_CLIENT_SECRET }}
+                config: |
+                    sentryHost: "https://sentry.io"
+                    sentryToken: "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"
+                    sentryOrganization: "https://mayicard.sentry.io"
