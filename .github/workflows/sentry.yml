@@ -1,4 +1,4 @@
-# sentry Exporter Workflow
+name: Sentry Exporter Workflow
 # This workflow responsible for running sentry exporter.
 # integration.config.sentryHost: Sentry host URL
 # integration.secrets.sentryToken: Sentry token
