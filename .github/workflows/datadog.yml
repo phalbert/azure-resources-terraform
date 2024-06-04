@@ -19,4 +19,4 @@ jobs:
           config: |
             datadog_base_url: https://api.datadoghq.eu          
             datadog_api_key: ${{ secrets.DATADOG_API_KEY }}
-            datadog_application_key:  ${{ secrets.DATADOG_APP_KEY }}
+            datadog_application_key:  ${{ secrets.PORT_CLIENT_SECRET }}
