@@ -6,7 +6,7 @@ on:
       incident_id:
         description: 'ID of the Statuspage incident to update'
         required: true
-      incident_status:
+      new_incident_status:
         description: 'New status of the incident'
         required: true
       update_message:
@@ -37,7 +37,7 @@ jobs:
             -H 'Content-Type: application/json' \
             -d '{
               "incident": {
-                "status": "${{ inputs.incident_status }}",
+                "status": "${{ inputs.new_incident_status }}",
                 "deliver_notifications": true,
                 "metadata": {
                   "publishedBy": {
@@ -57,4 +57,4 @@ jobs:
           status: "SUCCESS"
           runId: ${{ fromJson(inputs.port_context).runId }}
           logMessage: |
-            Updated Statuspage incident (${{ inputs.incident_id }}) to status: ${{ inputs.incident_status }}
+            Updated Statuspage incident (${{ inputs.incident_id }}) to status: ${{ inputs.new_incident_status }}
