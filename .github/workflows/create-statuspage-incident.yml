@@ -47,7 +47,7 @@ jobs:
 
       - name: Create Statuspage Incident
         run: |
-          curl -X POST https://api.statuspage.io/v1/pages/${{ secrets.STATUSPAGE_PAGE_ID }}/incidents \
+          curl -X POST https://api.statuspage.io/v1/pages/${{ fromJson(inputs.port_context).entity.identifier }}/incidents \
             -H 'Authorization: OAuth ${{ secrets.STATUSPAGE_API_KEY }}' \
             -H 'Content-Type: application/json' \
             -d '{
@@ -70,6 +70,6 @@ jobs:
           clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
           operation: PATCH_RUN
           runId: ${{ fromJson(inputs.port_context).runId }}
-          status: SUCCESS
+          status: "SUCCESS"
           logMessage: |
             Finished creating Statuspage incident: ${{ github.event.inputs.incident_title }}

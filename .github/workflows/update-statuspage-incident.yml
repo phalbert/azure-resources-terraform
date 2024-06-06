@@ -1,0 +1,60 @@
+name: Update Statuspage Incident
+
+on:
+  workflow_dispatch:
+    inputs:
+      incident_id:
+        description: 'ID of the Statuspage incident to update'
+        required: true
+      incident_status:
+        description: 'New status of the incident'
+        required: true
+      update_message:
+        description: 'Optional message to include in the update'
+        required: false
+      port_context: # Input for Port context (JSON)
+        description: "Port context (JSON format)"
+        required: true
+
+jobs:
+  update_incident:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Port (Initial)
+        uses: port-labs/port-github-action@v1
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          operation: PATCH_RUN
+          runId: ${{ fromJson(inputs.port_context).runId }}
+          logMessage: |
+            Creating Statuspage incident: ${{ inputs.incident_id }} in status page: ${{ fromJson(inputs.port_context).entity.title }}
+
+      - name: Update Statuspage Incident
+        run: |
+          curl -X POST https://api.statuspage.io/v1/pages/${{ fromJson(inputs.port_context).entity.identifier }}/incidents \
+            -H 'Authorization: OAuth ${{ secrets.STATUSPAGE_API_KEY }}' \
+            -H 'Content-Type: application/json' \
+            -d '{
+              "incident": {
+                "status": "${{ inputs.incident_status }}",
+                "deliver_notifications": true,
+                "metadata": {
+                  "publishedBy": {
+                    "name": "Port",
+                    "runId": ${{ fromJson(inputs.port_context).runId }}
+                  }
+                }, 
+              }
+            }'
+
+      - name: Notify Port about Update
+        uses: port-labs/port-github-action@v1
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          operation: PATCH_RUN
+          status: "SUCCESS"
+          runId: ${{ fromJson(inputs.port_context).runId }}
+          logMessage: |
+            Updated Statuspage incident (${{ inputs.incident_id }}) to status: ${{ inputs.incident_status }}
