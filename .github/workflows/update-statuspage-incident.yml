@@ -11,7 +11,7 @@ on:
         required: true
       update_message:
         description: 'message to include in the update'
-        required: true
+        required: false
       port_context: # Input for Port context (JSON)
         description: "Port context (JSON format)"
         required: true
@@ -43,7 +43,7 @@ jobs:
                 "metadata": {
                   "publishedBy": {
                     "name": "Port",
-                    "runId": ${{ fromJson(inputs.port_context).runId }}
+                    "runId": "${{ fromJson(inputs.port_context).runId }}"
                   }
                 }, 
               }
