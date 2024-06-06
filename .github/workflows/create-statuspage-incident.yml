@@ -47,12 +47,9 @@ jobs:
             Creating Statuspage incident: ${{ github.event.inputs.incident_title }}
 
       - name: Create Statuspage Incident
-        env:
-          STATUSPAGE_API_KEY: ${{ secrets.STATUSPAGE_API_KEY }}
-          STATUSPAGE_PAGE_ID: ${{ secrets.STATUSPAGE_PAGE_ID }}
         run: |
-          curl -X POST https://api.statuspage.io/v1/pages/$STATUSPAGE_PAGE_ID/incidents \
-            -H 'Authorization: OAuth $STATUSPAGE_API_KEY' \
+          curl -X POST https://api.statuspage.io/v1/pages/${{ secrets.STATUSPAGE_PAGE_ID }}/incidents \
+            -H 'Authorization: OAuth ${{ secrets.STATUSPAGE_API_KEY }}' \
             -H 'Content-Type: application/json' \
             -d '{
               "incident": {
