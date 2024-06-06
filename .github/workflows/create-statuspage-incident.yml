@@ -4,13 +4,13 @@ on:
   workflow_dispatch:
     inputs:
       incident_title:
-        description: 'Title of the incident'
+        description: "Title of the incident"
         required: true
       incident_message:
-        description: 'Description of the incident'
+        description: "Description of the incident"
         required: true
       incident_severity:
-        description: 'Severity: none, minor, major, critical'
+        description: "Severity: none, minor, major, critical"
         required: true
         type: choice
         options:
@@ -19,7 +19,7 @@ on:
           - major
           - critical
       incident_status:
-        description: 'Status: investigating, identified, monitoring, resolved'
+        description: "Status: investigating, identified, monitoring, resolved"
         required: true
         type: choice
         options:
@@ -27,10 +27,9 @@ on:
           - identified
           - monitoring
           - resolved
-      port_context:  # Input for Port context (JSON)
-        description: 'Port context (JSON format)'
+      port_context: # Input for Port context (JSON)
+        description: "Port context (JSON format)"
         required: true
-
 
 jobs:
   create_incident:
@@ -57,7 +56,10 @@ jobs:
                 "body": "${{ github.event.inputs.incident_message }}",
                 "status": "${{ github.event.inputs.incident_status }}",
                 "impact_override": "${{ github.event.inputs.incident_severity }}",
-                "deliver_notifications": true 
+                "deliver_notifications": true,
+                "metadata": {
+                  "port_context": ${{ fromJson(inputs.port_context) }}
+                }, 
               }
             }'
 
