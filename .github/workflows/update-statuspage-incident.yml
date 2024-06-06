@@ -43,10 +43,7 @@ jobs:
             -d '{
               "incident": {
                 "body": "${{ github.event.inputs.update_message }}",
-                "status": "${{ github.event.inputs.new_incident_status }}",
-                "metadata": {
-                  "portRunId": "${{ fromJson(inputs.port_context).runId }}"
-                }
+                "status": "${{ github.event.inputs.new_incident_status }}"
               }
             }'
 
