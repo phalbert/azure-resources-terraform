@@ -12,6 +12,9 @@ on:
       update_message:
         description: 'message to include in the update'
         required: false
+      affected_components:
+        description: 'List of components affected by the incident'
+        required: false
       port_context: # Input for Port context (JSON)
         description: "Port context (JSON format)"
         required: true
@@ -42,8 +45,9 @@ jobs:
             -H 'Content-Type: application/json' \
             -d '{
               "incident": {
-                "body": "${{ github.event.inputs.update_message }}",
-                "status": "${{ github.event.inputs.new_incident_status }}"
+                "body": "${{ inputs.update_message }}",
+                "status": "${{ inputs.new_incident_status }}",
+                "component_ids": ${{ inputs.affected_components }}
               }
             }'
 

@@ -27,6 +27,9 @@ on:
           - identified
           - monitoring
           - resolved
+      affected_components:
+        description: "List of components affected by the incident"
+        required: false
       port_context: # Input for Port context (JSON)
         description: "Port context (JSON format)"
         required: true
@@ -47,7 +50,7 @@ jobs:
           operation: PATCH_RUN
           runId: ${{ fromJson(inputs.port_context).runId }}
           logMessage: |
-            Creating Statuspage incident: ${{ github.event.inputs.incident_title }}
+            Creating Statuspage incident: ${{ inputs.incident_title }}
 
       - name: Create Statuspage Incident
         run: |
@@ -56,10 +59,11 @@ jobs:
             -H 'Content-Type: application/json' \
             -d '{
               "incident": {
-                "name": "${{ github.event.inputs.incident_title }}",
-                "body": "${{ github.event.inputs.incident_message }}",
-                "status": "${{ github.event.inputs.incident_status }}",
-                "impact_override": "${{ github.event.inputs.incident_severity }}",
+                "name": "${{ inputs.incident_title }}",
+                "body": "${{ inputs.incident_message }}",
+                "status": "${{ inputs.incident_status }}",
+                "impact_override": "${{ inputs.incident_severity }}",
+                "component_ids": ${{ inputs.affected_components }},
                 "deliver_notifications": true
               }
             }'
@@ -73,4 +77,4 @@ jobs:
           runId: ${{ fromJson(inputs.port_context).runId }}
           status: "SUCCESS"
           logMessage: |
-            Finished creating Statuspage incident: ${{ github.event.inputs.incident_title }}
+            Finished creating Statuspage incident: ${{ inputs.incident_title }}
