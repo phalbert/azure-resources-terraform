@@ -1,0 +1,52 @@
+name: Create Statuspage Incident and Notify Port
+
+on:
+  workflow_dispatch:
+    inputs:
+      postmortem:
+        description: "Postmortem of the incident"
+        required: true
+      port_context: # Input for Port context (JSON)
+        description: "Port context (JSON format)"
+        required: true
+
+env:
+  STATUSPAGE_PAGE_ID: ${{ fromJson(inputs.port_context).entity.identifier }}
+  INCIDENT_ID: ${{ fromJson(inputs.port_context).entity.identifier }}
+
+
+jobs:
+  create_incident:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Port (Initial)
+        uses: port-labs/port-github-action@v1
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          operation: PATCH_RUN
+          runId: ${{ fromJson(inputs.port_context).runId }}
+          logMessage: |
+            Creating Statuspage incident postmortem for incident: ${{ fromJson(inputs.port_context).entity.title }}
+
+      - name: Update Statuspage Incident
+        run: |
+          curl -X PUT https://api.statuspage.io/v1/pages/${{ env.STATUSPAGE_PAGE_ID }}/incidents/${{ env.INCIDENT_ID }}/postmortem \
+            -H 'Authorization: OAuth ${{ secrets.STATUSPAGE_API_KEY }}' \
+            -H 'Content-Type: application/json' \
+            -d '{
+              "postmortem": {
+                "body_draft": "${{ inputs.postmortem }}"
+              }
+            }'
+
+      - name: Notify Port (Initial)
+        uses: port-labs/port-github-action@v1
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          operation: PATCH_RUN
+          runId: ${{ fromJson(inputs.port_context).runId }}
+          status: "SUCCESS"
+          logMessage: |
+            Finished creating Statuspage incident postmortem for incident: ${{ fromJson(inputs.port_context).entity.title }}
