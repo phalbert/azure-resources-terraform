@@ -6,8 +6,8 @@ name: Sentry Exporter Workflow
 
 on:
     workflow_dispatch:
-    schedule:
-        - cron: '0 */1 * * *' # Determines the scheduled interval for this workflow. This example runs every hour.
+    # schedule:
+    #     - cron: '0 */1 * * *' # Determines the scheduled interval for this workflow. This example runs every hour.
 
 jobs:
     run-integration:
