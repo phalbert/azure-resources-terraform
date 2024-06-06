@@ -31,6 +31,10 @@ on:
         description: "Port context (JSON format)"
         required: true
 
+env:
+  STATUSPAGE_PAGE_ID: ${{ fromJson(inputs.port_context).entity.identifier }}
+
+
 jobs:
   create_incident:
     runs-on: ubuntu-latest
@@ -47,7 +51,7 @@ jobs:
 
       - name: Create Statuspage Incident
         run: |
-          curl -X POST https://api.statuspage.io/v1/pages/${{ fromJson(inputs.port_context).entity.identifier }}/incidents \
+          curl -X POST https://api.statuspage.io/v1/pages/${{ env.STATUSPAGE_PAGE_ID }}/incidents \
             -H 'Authorization: OAuth ${{ secrets.STATUSPAGE_API_KEY }}' \
             -H 'Content-Type: application/json' \
             -d '{

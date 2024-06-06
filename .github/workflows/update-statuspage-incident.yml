@@ -16,6 +16,10 @@ on:
         description: "Port context (JSON format)"
         required: true
 
+
+env:
+  STATUSPAGE_PAGE_ID: ${{ fromJson(inputs.port_context).entity.relations.statuspage }}
+
 jobs:
   update_incident:
     runs-on: ubuntu-latest
@@ -32,7 +36,7 @@ jobs:
 
       - name: Update Statuspage Incident
         run: |
-          curl -X POST https://api.statuspage.io/v1/pages/${{ fromJson(inputs.port_context).entity.identifier }}/incidents \
+          curl -X PUT https://api.statuspage.io/v1/pages/${{ env.STATUSPAGE_PAGE_ID }}/incidents/${{ fromJson(inputs.port_context).entity.identifier }} \
             -H 'Authorization: OAuth ${{ secrets.STATUSPAGE_API_KEY }}' \
             -H 'Content-Type: application/json' \
             -d '{
