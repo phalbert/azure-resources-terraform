@@ -10,8 +10,8 @@ on:
         description: 'New status of the incident'
         required: true
       update_message:
-        description: 'Optional message to include in the update'
-        required: false
+        description: 'message to include in the update'
+        required: true
       port_context: # Input for Port context (JSON)
         description: "Port context (JSON format)"
         required: true
@@ -38,6 +38,7 @@ jobs:
             -d '{
               "incident": {
                 "status": "${{ inputs.new_incident_status }}",
+                "body": "${{ inputs.update_message }}",
                 "deliver_notifications": true,
                 "metadata": {
                   "publishedBy": {
