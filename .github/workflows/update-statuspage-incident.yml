@@ -39,12 +39,8 @@ jobs:
               "incident": {
                 "status": "${{ inputs.new_incident_status }}",
                 "body": "${{ inputs.update_message }}",
-                "deliver_notifications": true,
                 "metadata": {
-                  "publishedBy": {
-                    "name": "Port",
-                    "runId": "${{ fromJson(inputs.port_context).runId }}"
-                  }
+                    "portRunId": "${{ fromJson(inputs.port_context).runId }}"
                 }, 
               }
             }'
