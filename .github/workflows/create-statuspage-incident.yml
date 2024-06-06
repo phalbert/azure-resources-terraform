@@ -62,8 +62,8 @@ jobs:
                 "impact_override": "${{ github.event.inputs.incident_severity }}",
                 "deliver_notifications": true,
                 "metadata": {
-                  "port_context": ${{ fromJson(inputs.port_context) }}
-                }, 
+                  "portRunId": "${{ fromJson(inputs.port_context).runId }}"
+                } 
               }
             }'
 

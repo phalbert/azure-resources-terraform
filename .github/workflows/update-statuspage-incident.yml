@@ -42,11 +42,11 @@ jobs:
             -H 'Content-Type: application/json' \
             -d '{
               "incident": {
-                "status": "${{ inputs.new_incident_status }}",
-                "body": "${{ inputs.update_message }}",
+                "body": "${{ github.event.inputs.update_message }}",
+                "status": "${{ github.event.inputs.new_incident_status }}",
                 "metadata": {
-                    "portRunId": "${{ fromJson(inputs.port_context).runId }}"
-                }, 
+                  "portRunId": "${{ fromJson(inputs.port_context).runId }}"
+                }
               }
             }'
 
