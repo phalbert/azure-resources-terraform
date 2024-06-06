@@ -71,5 +71,6 @@ jobs:
           clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
           operation: PATCH_RUN
           runId: ${{ fromJson(inputs.port_context).runId }}
+          status: SUCCESS
           logMessage: |
             Finished creating Statuspage incident: ${{ github.event.inputs.incident_title }}
