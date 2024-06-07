@@ -47,7 +47,13 @@ jobs:
               "incident": {
                 "body": "${{ inputs.update_message }}",
                 "status": "${{ inputs.new_incident_status }}",
-                "component_ids": ${{ inputs.affected_components }}
+                "component_ids": ${{ inputs.affected_components }},
+                "metadata": {
+                  "port": {
+                    "runId": "${{ fromJson(inputs.port_context).runId }}",
+                    "trigger": "${{ fromJson(inputs.port_context).trigger }}"
+                  }
+                }
               }
             }'
 
