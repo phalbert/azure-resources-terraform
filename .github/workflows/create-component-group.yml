@@ -39,7 +39,7 @@ jobs:
           logMessage: |
             Creating Statuspage component group: ${{ inputs.name }}
 
-      - name: Create Statuspage Incident
+      - name: Create Statuspage Component Group
         run: |
           echo "Creating Statuspage incident: ${{ inputs.name }} in status page: ${{ env.STATUSPAGE_PAGE_ID }}"
           
