@@ -70,8 +70,6 @@ jobs:
               }
             }'
 
-          echo "$payload"
-
           # Add component_ids only if provided and not empty
           if [[ -n "${{ inputs.affected_components }}" ]]; then
             # Convert string representation of the list to an actual JSON array
@@ -87,7 +85,8 @@ jobs:
 
             payload=$(echo "$payload" | jq --arg start_time "$start_time" --arg end_time "$end_time" '.incident += {"scheduled_for": $start_time, "scheduled_until": $end_time, "scheduled_remind_prior": true, "scheduled_auto_in_progress": true, "scheduled_auto_completed": true}')
           fi
-
+          
+          echo "$payload"
 
           curl -X POST https://api.statuspage.io/v1/pages/${{ env.STATUSPAGE_PAGE_ID }}/incidents \
             -H "Authorization: OAuth ${{ secrets.STATUSPAGE_API_KEY }}" \
