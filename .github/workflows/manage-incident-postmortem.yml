@@ -1,4 +1,4 @@
-name: Publish Statuspage Incident Postmortem
+name: Delete/Revert Statuspage Incident Postmortem
 
 on:
   workflow_dispatch:
@@ -20,7 +20,7 @@ env:
 
 
 jobs:
-  create_incident:
+  manage_postmortem:
     runs-on: ubuntu-latest
     steps:
       - name: Notify Port (Initial)
