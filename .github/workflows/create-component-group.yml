@@ -47,7 +47,7 @@ jobs:
               "description": "${{ inputs.description }}",
               "component_group": {
                 "components": ${{ inputs.components }},
-                "name": "${{ inputs.name }}",
+                "name": "${{ inputs.name }}"
               }
             }'
           
