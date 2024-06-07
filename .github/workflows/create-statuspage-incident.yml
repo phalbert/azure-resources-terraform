@@ -65,6 +65,7 @@ jobs:
                 "status": "${{ inputs.incident_status }}",
                 "impact_override": "${{ inputs.incident_severity }}",
                 "deliver_notifications": true,
+                "affected_components": ${{ inputs.affected_components }},
                 "metadata": {
                   "port": {
                     "runId": "${{ fromJson(inputs.port_context).runId }}",
@@ -73,13 +74,6 @@ jobs:
                 }
               }
             }'
-
-          # Add component_ids only if provided and not empty
-          if [[ -n "${{ inputs.affected_components }}" ]]; then
-            # Convert string representation of the list to an actual JSON array
-            affected_components=$(echo "${{ inputs.affected_components }}" | jq -c -r 'split(",")')
-            payload=$(echo "$payload" | jq --argjson components "$affected_components" '.incident.component_ids = $components')  
-          fi
           
           # Add scheduled fields only if the incident is scheduled
           if [[ "${{ inputs.incident_status }}" =~ ^(scheduled|in_progress|verifying|completed)$ ]]; then
