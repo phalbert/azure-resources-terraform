@@ -41,8 +41,8 @@ jobs:
             -H 'Content-Type: application/json' \
             -d '{
               "postmortem": {
-                "notify_subscribers": "true",
-                "notify_twitter": "${{ inputs.notify_twitter }}",
+                "notify_subscribers": true,
+                "notify_twitter": ${{ inputs.notify_twitter }},
                 "custom_tweet": "${{ inputs.tweet }}"
               }
             }'
