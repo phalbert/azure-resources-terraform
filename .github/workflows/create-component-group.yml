@@ -26,7 +26,7 @@ env:
 
 
 jobs:
-  create_incident:
+  create_component_group:
     runs-on: ubuntu-latest
     steps:
       - name: Notify Port (Initial)
