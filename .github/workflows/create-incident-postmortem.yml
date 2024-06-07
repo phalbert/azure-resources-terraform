@@ -16,7 +16,7 @@ env:
 
 
 jobs:
-  create_incident:
+  create_incident_postmortem:
     runs-on: ubuntu-latest
     steps:
       - name: Notify Port (Initial)
