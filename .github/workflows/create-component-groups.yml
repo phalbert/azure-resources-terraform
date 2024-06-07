@@ -1,0 +1,72 @@
+name: Create Statuspage Component Group
+
+on:
+  workflow_dispatch:
+    inputs:
+      name:
+        description: "Name of the component group"
+        required: true
+      description:
+        description: "Description of the component group"
+        required: true
+      status_page:
+        description: "Statuspage page ID"
+        required: false
+      components:
+        description: "List of components in the group"
+        required: false
+      port_context: # Input for Port context (JSON)
+        description: "Port context (JSON format)"
+        required: true
+
+# If Ocean is enabled, the STATUSPAGE_PAGE_ID will be set in the context 
+# since the self service action is created against the Statuspage entity
+env:
+  STATUSPAGE_PAGE_ID: ${{ inputs.status_page || secrets.STATUSPAGE_PAGE_ID }}
+
+
+jobs:
+  create_incident:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Port (Initial)
+        uses: port-labs/port-github-action@v1
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          operation: PATCH_RUN
+          runId: ${{ fromJson(inputs.port_context).runId }}
+          logMessage: |
+            Creating Statuspage component group: ${{ inputs.name }}
+
+      - name: Create Statuspage Incident
+        run: |
+          echo "Creating Statuspage incident: ${{ inputs.name }} in status page: ${{ env.STATUSPAGE_PAGE_ID }}"
+          
+          payload='{
+              "description": "${{ inputs.description }}",
+              "component_group": {
+                "components": ${{ inputs.components }},
+                "name": "${{ inputs.name }}",
+              }
+            }'
+          
+          echo "$payload"
+
+          curl -X POST https://api.statuspage.io/v1/pages/${{ env.STATUSPAGE_PAGE_ID }}/component-groups \
+            -H "Authorization: OAuth ${{ secrets.STATUSPAGE_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d "$payload"
+      
+    
+
+      - name: Notify Port (Initial)
+        uses: port-labs/port-github-action@v1
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          operation: PATCH_RUN
+          runId: ${{ fromJson(inputs.port_context).runId }}
+          status: "SUCCESS"
+          logMessage: |
+            Finished creating Statuspage incident: ${{ inputs.name }}
