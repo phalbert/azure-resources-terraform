@@ -63,7 +63,7 @@ jobs:
                 "body": "${{ inputs.incident_message }}",
                 "status": "${{ inputs.incident_status }}",
                 "impact_override": "${{ inputs.incident_severity }}",
-                "component_ids": ${{ inputs.affected_components }},
+                "component_ids": ${{ fromJson(inputs.affected_components) }},
                 "deliver_notifications": true,
                 "metadata": {
                   "port": {
