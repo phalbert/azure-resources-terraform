@@ -11,7 +11,7 @@ on:
         required: true
 
 env:
-  STATUSPAGE_PAGE_ID: ${{ fromJson(inputs.port_context).entity.identifier }}
+  STATUSPAGE_PAGE_ID: ${{ fromJson(inputs.port_context).entity.relations.statuspage }}
   INCIDENT_ID: ${{ fromJson(inputs.port_context).entity.identifier }}
 
 
