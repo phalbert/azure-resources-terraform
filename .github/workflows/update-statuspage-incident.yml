@@ -21,7 +21,7 @@ on:
 
 
 env:
-  STATUSPAGE_PAGE_ID: ${{ fromJson(inputs.port_context).entity.relations.statuspage }}
+  STATUSPAGE_PAGE_ID: ${{ fromJson(inputs.port_context).entity.relations.statuspage || secrets.STATUSPAGE_PAGE_ID }}
   INCIDENT_ID: ${{ fromJson(inputs.port_context).entity.identifier }}
 
 jobs:
