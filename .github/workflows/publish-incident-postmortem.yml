@@ -43,7 +43,7 @@ jobs:
               "postmortem": {
                 "notify_subscribers": "true",
                 "notify_twitter": "${{ inputs.notify_twitter }}",
-                "custom_tweet": "${{ inputs.tweet }}",
+                "custom_tweet": "${{ inputs.tweet }}"
               }
             }'
 
