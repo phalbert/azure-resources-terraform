@@ -72,7 +72,7 @@ jobs:
                 "metadata": {
                   "port": {
                     "runId": "${{ fromJson(inputs.port_context).runId }}",
-                    "triggeredBy": ${{ fromJson(inputs.port_context).trigger.by.user.email }}
+                    "triggeredBy": "${{ fromJson(inputs.port_context).trigger.by.user.email }}"
                   }
                 }
               }
