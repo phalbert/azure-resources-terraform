@@ -54,16 +54,12 @@ jobs:
 
       - name: Create Statuspage Incident
         run: |
-          curl -X POST https://api.statuspage.io/v1/pages/${{ env.STATUSPAGE_PAGE_ID }}/incidents \
-            -H 'Authorization: OAuth ${{ secrets.STATUSPAGE_API_KEY }}' \
-            -H 'Content-Type: application/json' \
-            -d '{
+          payload='{
               "incident": {
                 "name": "${{ inputs.incident_title }}",
                 "body": "${{ inputs.incident_message }}",
                 "status": "${{ inputs.incident_status }}",
                 "impact_override": "${{ inputs.incident_severity }}",
-                "component_ids": ${{ fromJson(inputs.affected_components) }},
                 "deliver_notifications": true,
                 "metadata": {
                   "port": {
@@ -73,6 +69,32 @@ jobs:
                 }
               }
             }'
+
+          echo "$payload"
+
+          # Add component_ids only if provided and not empty
+          if [[ -n "${{ inputs.affected_components }}" ]]; then
+            # Convert string representation of the list to an actual JSON array
+            affected_components=$(echo "${{ inputs.affected_components }}" | jq -c -r 'split(",")')
+            payload=$(echo "$payload" | jq --argjson components "$affected_components" '.incident.component_ids = $components')  
+          fi
+          
+          # Add scheduled fields only if the incident is scheduled
+          if [[ "${{ inputs.incident_status }}" =~ ^(scheduled|in_progress|verifying|completed)$ ]]; then
+            # Calculate default start and end times for scheduled maintenance (next hour, 3 hours duration)
+            start_time=$(date -u -d "+1 hour" +%Y-%m-%dT%H:%M:%S.000Z)
+            end_time=$(date -u -d "+4 hours" +%Y-%m-%dT%H:%M:%S.000Z)
+
+            payload=$(echo "$payload" | jq --arg start_time "$start_time" --arg end_time "$end_time" '.incident += {"scheduled_for": $start_time, "scheduled_until": $end_time, "scheduled_remind_prior": true, "scheduled_auto_in_progress": true, "scheduled_auto_completed": true}')
+          fi
+
+
+          curl -X POST https://api.statuspage.io/v1/pages/${{ env.STATUSPAGE_PAGE_ID }}/incidents \
+            -H "Authorization: OAuth ${{ secrets.STATUSPAGE_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d "$payload"
+      
+    
 
       - name: Notify Port (Initial)
         uses: port-labs/port-github-action@v1
