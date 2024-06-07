@@ -1,11 +1,15 @@
-name: Create Statuspage Incident Postmortem
+name: Publish Statuspage Incident Postmortem
 
 on:
   workflow_dispatch:
     inputs:
-      postmortem:
-        description: "Postmortem of the incident"
+      notify_twitter:
+        description: "Notify Twitter"
         required: true
+        type: boolean
+      custom_tweet:
+        description: "Custom Tweet"
+        required: false
       port_context: # Input for Port context (JSON)
         description: "Port context (JSON format)"
         required: true
@@ -27,16 +31,18 @@ jobs:
           operation: PATCH_RUN
           runId: ${{ fromJson(inputs.port_context).runId }}
           logMessage: |
-            Creating Statuspage incident postmortem for incident: ${{ fromJson(inputs.port_context).entity.title }}
+            Publishing Statuspage incident postmortem for incident: ${{ fromJson(inputs.port_context).entity.title }}
 
-      - name: Update Statuspage Incident
+      - name: Publish Statuspage Incident Postmortem
         run: |
-          curl -X PUT https://api.statuspage.io/v1/pages/${{ env.STATUSPAGE_PAGE_ID }}/incidents/${{ env.INCIDENT_ID }}/postmortem \
+          curl -X PUT https://api.statuspage.io/v1/pages/${{ env.STATUSPAGE_PAGE_ID }}/incidents/${{ env.INCIDENT_ID }}/postmortem/publish \
             -H 'Authorization: OAuth ${{ secrets.STATUSPAGE_API_KEY }}' \
             -H 'Content-Type: application/json' \
             -d '{
               "postmortem": {
-                "body_draft": "${{ inputs.postmortem }}"
+                "notify_subscribers": true,
+                "notify_twitter": ${{ inputs.notify_twitter }},
+                "custom_tweet": "${{ inputs.custom_tweet }}",
               }
             }'
 
@@ -49,4 +55,4 @@ jobs:
           runId: ${{ fromJson(inputs.port_context).runId }}
           status: "SUCCESS"
           logMessage: |
-            Finished creating Statuspage incident postmortem for incident: ${{ fromJson(inputs.port_context).entity.title }}
+            Finished publishing the Statuspage incident postmortem for incident: ${{ fromJson(inputs.port_context).entity.title }}
