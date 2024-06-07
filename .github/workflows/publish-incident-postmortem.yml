@@ -7,7 +7,7 @@ on:
         description: "Notify Twitter"
         required: true
         type: boolean
-      custom_tweet:
+      tweet:
         description: "Custom Tweet"
         required: false
       port_context: # Input for Port context (JSON)
@@ -42,7 +42,7 @@ jobs:
               "postmortem": {
                 "notify_subscribers": true,
                 "notify_twitter": ${{ inputs.notify_twitter }},
-                "custom_tweet": "${{ inputs.custom_tweet }}",
+                "custom_tweet": "${{ inputs.tweet }}",
               }
             }'
 
