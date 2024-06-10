@@ -103,8 +103,9 @@ jobs:
       - name: Print Incident
         env:
           incident: ${{ steps.create_incident.outputs.INCIDENT }}
+          INCIDENT_ID: ${{ fromJson(steps.create_incident.outputs.INCIDENT).id }}
         run: |
-          echo "Incident: ${{ env.incident }}"
+          echo "Incident ID: ${{ env.INCIDENT_ID }}"
           
       
       - name: Upsert Entity in Port
