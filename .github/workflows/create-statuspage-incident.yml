@@ -118,6 +118,7 @@ jobs:
         run: |
           echo "Incident ID: ${{ env.INCIDENT_ID }}"
           echo "Incident Status: ${{ env.STATUS }}"
+          echo "Incident: ${{ env.incident.id }}"
           
       
       - name: Upsert Entity in Port
