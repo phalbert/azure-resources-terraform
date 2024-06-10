@@ -99,48 +99,12 @@ jobs:
           echo "INCIDENT=$response" >> $GITHUB_ENV
           echo "$response" > incident.json
 
-          incident_id=$(echo "$response" | jq -r '.id')
-          impact=$(echo "$response" | jq -r '.impact')
-          status=$(echo "$response" | jq -r '.status')
-          created_at=$(echo "$response" | jq -r '.created_at')
-          updated_at=$(echo "$response" | jq -r '.updated_at')
-          started_at=$(echo "$response" | jq -r '.started_at')
-          resolved_at=$(echo "$response" | jq -r '.resolved_at')
-          scheduled_until=$(echo "$response" | jq -r '.scheduled_until')
-          scheduled_for=$(echo "$response" | jq -r '.scheduled_for')
-          scheduled_auto_in_progress=$(echo "$response" | jq -r '.scheduled_auto_in_progress')
-          scheduled_auto_completed=$(echo "$response" | jq -r '.scheduled_auto_completed')
-          scheduled_remind_prior=$(echo "$response" | jq -r '.scheduled_remind_prior')
-          scheduled_reminded_at=$(echo "$response" | jq -r '.scheduled_reminded_at')
-          reminder_intervals=$(echo "$response" | jq -r '.reminder_intervals')
-          metadata=$(echo "$response" | jq -r '.metadata')
-          component_ids=$(echo "$response" | jq -r '.component_ids')
-
-          echo "INCIDENT_ID=$incident_id" >> $GITHUB_ENV
-          echo "IMPACT=$impact" >> $GITHUB_ENV
-          echo "STATUS=$status" >> $GITHUB_ENV
-          echo "CREATED_AT=$created_at" >> $GITHUB_ENV
-          echo "UPDATED_AT=$updated_at" >> $GITHUB_ENV
-          echo "STARTED_AT=$started_at" >> $GITHUB_ENV
-          echo "RESOLVED_AT=$resolved_at" >> $GITHUB_ENV
-          echo "SCHEDULED_UNTIL=$scheduled_until" >> $GITHUB_ENV
-          echo "SCHEDULED_FOR=$scheduled_for" >> $GITHUB_ENV
-          echo "SCHEDULED_AUTO_IN_PROGRESS=$scheduled_auto_in_progress" >> $GITHUB_ENV
-          echo "SCHEDULED_AUTO_COMPLETED=$scheduled_auto_completed" >> $GITHUB_ENV
-          echo "SCHEDULED_REMIND_PRIOR=$scheduled_remind_prior" >> $GITHUB_ENV
-          echo "SCHEDULED_REMINDED_AT=$scheduled_reminded_at" >> $GITHUB_ENV
-          echo "REMINDER_INTERVALS=$reminder_intervals" >> $GITHUB_ENV
-          echo "METADATA=$metadata" >> $GITHUB_ENV
-          echo "COMPONENT_IDS=$component_ids" >> $GITHUB_ENV
-
-
+          
       - name: Print Incident
         env:
           incident: ${{ steps.create_incident.outputs.INCIDENT }}
         run: |
-          echo "${{ env.INCIDENT_ID }}"
-          echo "${{ env.IMPACT }}"
-          echo "${{ env.STATUS }}"
+          echo "Incident: ${{ env.incident }}"
           
       
       - name: Upsert Entity in Port
