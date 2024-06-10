@@ -55,7 +55,25 @@ jobs:
                   }
                 }
               }
-            }'
+            }' 
+
+      - name: Upsert Entity in Port
+        uses: port-labs/port-github-action@v1
+        with:
+          identifier: ${{ fromJson(inputs.port_context).entity.identifier }}
+          title: ${{ fromJson(inputs.port_context).entity.title }}
+          team: "[]"
+          icon: DefaultBlueprint
+          blueprint: ${{ fromJson(inputs.port_context).blueprint }}
+          properties: |-
+            {
+              "status": "${{ inputs.new_incident_status }}"
+            }
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          operation: UPSERT
+          runId: ${{ fromJson(inputs.port_context).runId }}
+      
 
       - name: Notify Port about Update
         uses: port-labs/port-github-action@v1
