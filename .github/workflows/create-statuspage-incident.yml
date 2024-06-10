@@ -101,7 +101,8 @@ jobs:
       - name: Print Incident
         run: |
           echo "${{ steps.create_incident.outputs.INCIDENT }}"
-          echo "INCIDENT ID: ${{ fromJson(steps.create_incident.outputs.INCIDENT) }}"
+          echo "$INCIDENT"
+          echo "$INCIDENT.status"
           
       
       - name: Upsert Entity in Port
