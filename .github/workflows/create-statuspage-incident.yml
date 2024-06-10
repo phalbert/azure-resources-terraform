@@ -99,7 +99,7 @@ jobs:
           echo "INCIDENT=$response" >> $GITHUB_ENV
           echo "$response" > response.json
 
-          echo "id=$(jq -r '.id' response.json)" >> $GITHUB_OUTPUT
+          echo "incident_id=$(jq -r '.id' response.json)" >> $GITHUB_OUTPUT
           echo "status=$(jq -r '.status' response.json)" >> $GITHUB_OUTPUT
           echo "impact=$(jq -r '.impact' response.json)" >> $GITHUB_OUTPUT
           echo "created_at=$(jq -r '.created_at' response.json)" >> $GITHUB_OUTPUT
@@ -107,15 +107,17 @@ jobs:
           echo "started_at=$(jq -r '.started_at' response.json)" >> $GITHUB_OUTPUT
           echo "resolved_at=$(jq -r '.resolved_at' response.json)" >> $GITHUB_OUTPUT
           echo "scheduled_until=$(jq -r '.scheduled_until' response.json)" >> $GITHUB_OUTPUT
-          
+
 
           
       - name: Print Incident
         env:
           incident: ${{ steps.create_incident.outputs.INCIDENT }}
-          INCIDENT_ID: ${{ fromJson(steps.create_incident.outputs.INCIDENT).id }}
+          INCIDENT_ID: ${{ steps.create_incident.outputs.incident_id }}
+          STATUS: ${{ steps.create_incident.outputs.status }}
         run: |
           echo "Incident ID: ${{ env.INCIDENT_ID }}"
+          echo "Incident Status: ${{ env.STATUS }}"
           
       
       - name: Upsert Entity in Port
