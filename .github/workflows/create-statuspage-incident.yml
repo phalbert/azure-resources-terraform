@@ -107,10 +107,6 @@ jobs:
           echo "updated_at=$(jq -r '.updated_at' response.json)" >> $GITHUB_OUTPUT
           echo "started_at=$(jq -r '.started_at' response.json)" >> $GITHUB_OUTPUT
           echo "resolved_at=$(jq -r '.resolved_at' response.json)" >> $GITHUB_OUTPUT
-          echo "reminder_intervals=$(jq -r '.reminder_intervals' response.json)" >> $GITHUB_OUTPUT
-
-
-
           
       - name: Print Incident
         env:
