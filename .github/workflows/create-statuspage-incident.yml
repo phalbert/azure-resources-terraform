@@ -107,7 +107,7 @@ jobs:
           echo "updated_at=$(jq -r '.updated_at' response.json)" >> $GITHUB_OUTPUT
           echo "started_at=$(jq -r '.started_at' response.json)" >> $GITHUB_OUTPUT
           echo "resolved_at=$(jq -r '.resolved_at' response.json)" >> $GITHUB_OUTPUT
-          
+
       - name: Print Incident
         env:
           incident: ${{ steps.create_incident.outputs.INCIDENT }}
@@ -116,8 +116,7 @@ jobs:
         run: |
           echo "Incident ID: ${{ env.INCIDENT_ID }}"
           echo "Incident Status: ${{ env.STATUS }}"
-          echo "Incident: ${{ fromJson(env.incident).id }}"
-          
+ 
       
       - name: Upsert Entity in Port
         uses: port-labs/port-github-action@v1
