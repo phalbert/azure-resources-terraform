@@ -44,7 +44,7 @@ env:
 
 
 jobs:
-  create_incident:
+  create_statuspage_incident:
     runs-on: ubuntu-latest
     steps:
       - name: Notify Port (Initial)
@@ -58,6 +58,7 @@ jobs:
             Creating Statuspage incident: ${{ inputs.incident_title }}
 
       - name: Create Statuspage Incident
+        id: create_incident
         run: |
           echo "Creating Statuspage incident: ${{ inputs.incident_title }} in status page: ${{ env.STATUSPAGE_PAGE_ID }}"
           
@@ -89,12 +90,51 @@ jobs:
           
           echo "$payload"
 
-          curl -X POST https://api.statuspage.io/v1/pages/${{ env.STATUSPAGE_PAGE_ID }}/incidents \
+          response=$(curl -s -X POST "https://api.statuspage.io/v1/pages/${{ env.STATUSPAGE_PAGE_ID }}/incidents" \
             -H "Authorization: OAuth ${{ secrets.STATUSPAGE_API_KEY }}" \
             -H "Content-Type: application/json" \
-            -d "$payload"
+            -d "$payload")
+
+          echo "$response"
+          echo "INCIDENT=$response" >> $GITHUB_ENV
+          
       
-    
+      - name: Upsert Entity in Port
+        uses: port-labs/port-github-action@v1
+        with:
+          identifier: ${{ fromJson(steps.create_incident.outputs.INCIDENT).incident.id }}
+          title: ${{ fromJson(steps.create_incident.outputs.INCIDENT).incident.name }}
+          team: "[]"
+          icon: DefaultBlueprint
+          blueprint: ${{ fromJson(inputs.port_context).blueprint }}
+          properties: |-
+            {
+              "impact": "${{ fromJson(steps.create_incident.outputs.INCIDENT).incident.impact }}",
+              "status": "${{ fromJson(steps.create_incident.outputs.INCIDENT).incident.status }}",
+              "createdAt": "${{ fromJson(steps.create_incident.outputs.INCIDENT).incident.created_at }}",
+              "updatedAt": "${{ fromJson(steps.create_incident.outputs.INCIDENT).incident.updated_at }}",
+              "startedAt": "${{ fromJson(steps.create_incident.outputs.INCIDENT).incident.started_at }}",
+              "resolvedAt": "${{ fromJson(steps.create_incident.outputs.INCIDENT).incident.resolved_at }}",
+              "scheduled_until": "${{ fromJson(steps.create_incident.outputs.INCIDENT).incident.scheduled_until }}",
+              "scheduled_for": "${{ fromJson(steps.create_incident.outputs.INCIDENT).incident.scheduled_for }}",
+              "scheduled_auto_in_progress": "${{ fromJson(steps.create_incident.outputs.INCIDENT).incident.scheduled_auto_in_progress }}",
+              "scheduled_auto_completed": "${{ fromJson(steps.create_incident.outputs.INCIDENT).incident.scheduled_auto_completed }}",
+              "scheduled_remind_prior": "${{ fromJson(steps.create_incident.outputs.INCIDENT).incident.scheduled_remind_prior }}",
+              "scheduled_reminded_at": "${{ fromJson(steps.create_incident.outputs.INCIDENT).incident.scheduled_reminded_at }}",
+              "metadata": ${{ fromJson(steps.create_incident.outputs.INCIDENT).incident.metadata }},
+              "reminder_intervals": "${{ fromJson(steps.create_incident.outputs.INCIDENT).incident.reminder_intervals }}",
+              "pageId": "${{ env.STATUSPAGE_PAGE_ID }}",
+              "component_ids": "${{ inputs.affected_components }}"
+            }
+          relations: |-
+            {
+              "statuspage": "${{ env.STATUSPAGE_PAGE_ID }}"
+            }
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          operation: UPSERT
+          runId: ${{ fromJson(inputs.port_context).runId }}
+      
 
       - name: Notify Port (Initial)
         uses: port-labs/port-github-action@v1
