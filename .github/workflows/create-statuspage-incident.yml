@@ -105,6 +105,7 @@ jobs:
           echo "impact=$(jq -r '.impact' response.json)" >> $GITHUB_OUTPUT
           echo "created_at=$(jq -r '.created_at' response.json)" >> $GITHUB_OUTPUT
           echo "updated_at=$(jq -r '.updated_at' response.json)" >> $GITHUB_OUTPUT
+          echo "shortlink=$(jq -r '.shortlink' response.json)" >> $GITHUB_OUTPUT
 
 
       - name: Upsert Entity in Port
@@ -115,6 +116,7 @@ jobs:
           IMPACT: ${{ steps.create_incident.outputs.impact }}
           CREATED_AT: ${{ steps.create_incident.outputs.created_at }}
           UPDATED_AT: ${{ steps.create_incident.outputs.updated_at }}
+          SHORTLINK: ${{ steps.create_incident.outputs.shortlink }}
         with:
           identifier: ${{ env.INCIDENT_ID }}
           title: ${{ inputs.incident_title }}
@@ -127,6 +129,7 @@ jobs:
               "status": "${{ env.STATUS }}",
               "createdAt": "${{ env.CREATED_AT }}",
               "updatedAt": "${{ env.UPDATED_AT }}",
+              "shortlink": "${{ env.SHORTLINK }}",
               "pageId": "${{ env.STATUSPAGE_PAGE_ID }}"
             }
           relations: |-
