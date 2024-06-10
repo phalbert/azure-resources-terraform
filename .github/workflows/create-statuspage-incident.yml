@@ -68,7 +68,6 @@ jobs:
                 "body": "${{ inputs.incident_message }}",
                 "status": "${{ inputs.incident_status }}",
                 "impact_override": "${{ inputs.incident_severity }}",
-                "started_at": "'$(date -u +%Y-%m-%dT%H:%M:%S.000Z)'",
                 "deliver_notifications": true,
                 "component_ids": ${{ inputs.affected_components }},
                 "metadata": {
@@ -106,7 +105,6 @@ jobs:
           echo "impact=$(jq -r '.impact' response.json)" >> $GITHUB_OUTPUT
           echo "created_at=$(jq -r '.created_at' response.json)" >> $GITHUB_OUTPUT
           echo "updated_at=$(jq -r '.updated_at' response.json)" >> $GITHUB_OUTPUT
-          echo "started_at=$(jq -r '.started_at' response.json)" >> $GITHUB_OUTPUT
 
       - name: Print Incident
         env:
@@ -126,7 +124,6 @@ jobs:
           IMPACT: ${{ steps.create_incident.outputs.impact }}
           CREATED_AT: ${{ steps.create_incident.outputs.created_at }}
           UPDATED_AT: ${{ steps.create_incident.outputs.updated_at }}
-          STARTED_AT: ${{ steps.create_incident.outputs.started_at }}
         with:
           identifier: ${{ env.INCIDENT_ID }}
           title: ${{ inputs.incident_title }}
@@ -139,7 +136,6 @@ jobs:
               "status": "${{ env.STATUS }}",
               "createdAt": "${{ env.CREATED_AT }}",
               "updatedAt": "${{ env.UPDATED_AT }}",
-              "startedAt": "${{ env.STARTED_AT }}",
               "pageId": "${{ env.STATUSPAGE_PAGE_ID }}"
             }
           relations: |-
