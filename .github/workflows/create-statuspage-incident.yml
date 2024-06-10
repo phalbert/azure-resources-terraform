@@ -103,7 +103,6 @@ jobs:
           incident: ${{ steps.create_incident.outputs.INCIDENT }}
         run: |
           echo "${{ steps.create_incident.outputs.INCIDENT }}"
-          echo "$INCIDENT"
           echo "${{ env.incident.id }}"
           
       
