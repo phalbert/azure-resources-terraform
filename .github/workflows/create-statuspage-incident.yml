@@ -102,27 +102,27 @@ jobs:
       - name: Upsert Entity in Port
         uses: port-labs/port-github-action@v1
         with:
-          identifier: ${{ fromJson(steps.create_incident.outputs.INCIDENT).incident.id }}
-          title: ${{ fromJson(steps.create_incident.outputs.INCIDENT).incident.name }}
+          identifier: ${{ fromJson(steps.create_incident.outputs.INCIDENT).id }}
+          title: ${{ fromJson(steps.create_incident.outputs.INCIDENT).name }}
           team: "[]"
           icon: DefaultBlueprint
           blueprint: ${{ fromJson(inputs.port_context).blueprint }}
           properties: |-
             {
-              "impact": "${{ fromJson(steps.create_incident.outputs.INCIDENT).incident.impact }}",
-              "status": "${{ fromJson(steps.create_incident.outputs.INCIDENT).incident.status }}",
-              "createdAt": "${{ fromJson(steps.create_incident.outputs.INCIDENT).incident.created_at }}",
-              "updatedAt": "${{ fromJson(steps.create_incident.outputs.INCIDENT).incident.updated_at }}",
-              "startedAt": "${{ fromJson(steps.create_incident.outputs.INCIDENT).incident.started_at }}",
-              "resolvedAt": "${{ fromJson(steps.create_incident.outputs.INCIDENT).incident.resolved_at }}",
-              "scheduled_until": "${{ fromJson(steps.create_incident.outputs.INCIDENT).incident.scheduled_until }}",
-              "scheduled_for": "${{ fromJson(steps.create_incident.outputs.INCIDENT).incident.scheduled_for }}",
-              "scheduled_auto_in_progress": "${{ fromJson(steps.create_incident.outputs.INCIDENT).incident.scheduled_auto_in_progress }}",
-              "scheduled_auto_completed": "${{ fromJson(steps.create_incident.outputs.INCIDENT).incident.scheduled_auto_completed }}",
-              "scheduled_remind_prior": "${{ fromJson(steps.create_incident.outputs.INCIDENT).incident.scheduled_remind_prior }}",
-              "scheduled_reminded_at": "${{ fromJson(steps.create_incident.outputs.INCIDENT).incident.scheduled_reminded_at }}",
-              "metadata": ${{ fromJson(steps.create_incident.outputs.INCIDENT).incident.metadata }},
-              "reminder_intervals": "${{ fromJson(steps.create_incident.outputs.INCIDENT).incident.reminder_intervals }}",
+              "impact": "${{ fromJson(steps.create_incident.outputs.INCIDENT).impact }}",
+              "status": "${{ fromJson(steps.create_incident.outputs.INCIDENT).status }}",
+              "createdAt": "${{ fromJson(steps.create_incident.outputs.INCIDENT).created_at }}",
+              "updatedAt": "${{ fromJson(steps.create_incident.outputs.INCIDENT).updated_at }}",
+              "startedAt": "${{ fromJson(steps.create_incident.outputs.INCIDENT).started_at }}",
+              "resolvedAt": "${{ fromJson(steps.create_incident.outputs.INCIDENT).resolved_at }}",
+              "scheduled_until": "${{ fromJson(steps.create_incident.outputs.INCIDENT).scheduled_until }}",
+              "scheduled_for": "${{ fromJson(steps.create_incident.outputs.INCIDENT).scheduled_for }}",
+              "scheduled_auto_in_progress": "${{ fromJson(steps.create_incident.outputs.INCIDENT).scheduled_auto_in_progress }}",
+              "scheduled_auto_completed": "${{ fromJson(steps.create_incident.outputs.INCIDENT).scheduled_auto_completed }}",
+              "scheduled_remind_prior": "${{ fromJson(steps.create_incident.outputs.INCIDENT).scheduled_remind_prior }}",
+              "scheduled_reminded_at": "${{ fromJson(steps.create_incident.outputs.INCIDENT).scheduled_reminded_at }}",
+              "metadata": ${{ fromJson(steps.create_incident.outputs.INCIDENT).metadata }},
+              "reminder_intervals": "${{ fromJson(steps.create_incident.outputs.INCIDENT).reminder_intervals }}",
               "pageId": "${{ env.STATUSPAGE_PAGE_ID }}",
               "component_ids": "${{ inputs.affected_components }}"
             }
