@@ -171,12 +171,12 @@ jobs:
               "scheduled_reminded_at": "${{ env.SCHEDULED_REMINDED_AT }}",
               "metadata": "${{ env.METADATA }}",
               "reminder_intervals": "${{ env.REMINDER_INTERVALS }}",
-              "pageId": "${{ env.STATUSPAGE_PAGE_ID }}",
-              "component_ids": "${{ inputs.affected_components }}"
+              "pageId": "${{ env.STATUSPAGE_PAGE_ID }}"
             }
           relations: |-
             {
-              "statuspage": "${{ env.STATUSPAGE_PAGE_ID }}"
+              "statuspage": "${{ env.STATUSPAGE_PAGE_ID }}",
+              "components": "${{ inputs.affected_components }}"
             }
           clientId: ${{ secrets.PORT_CLIENT_ID }}
           clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
