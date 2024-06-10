@@ -99,10 +99,12 @@ jobs:
           echo "INCIDENT=$response" >> $GITHUB_ENV
 
       - name: Print Incident
+        env:
+          INCIDENT: ${{ steps.create_incident.outputs.INCIDENT }}
         run: |
           echo "${{ steps.create_incident.outputs.INCIDENT }}"
           echo "$INCIDENT"
-          echo "$INCIDENT.status"
+          echo "${{ fromJson(env.INCIDENT).id }}"
           
       
       - name: Upsert Entity in Port
