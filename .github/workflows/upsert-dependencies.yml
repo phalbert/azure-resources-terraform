@@ -48,7 +48,7 @@ jobs:
             }
             }]' < sbom.json > dependencies.json
 
-            jq '.sbom.packages[] | [.name]}' < sbom.json > packages.json
+            jq '[.sbom.packages[] | .name]' < sbom.json > packages.json
 
             echo "DEPENDENCIES=$(<packages.json)" >> $GITHUB_ENV
 
