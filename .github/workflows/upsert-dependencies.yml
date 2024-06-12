@@ -5,7 +5,7 @@ on:
     inputs:
       port_context: # Input for Port context (JSON)
         description: "Port context (JSON format)"
-        required: true
+        required: false
 
 
 env:
