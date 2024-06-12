@@ -39,7 +39,7 @@ jobs:
       - name: Transform and Map JSON to Port Dependency entities
         run: |
             jq '[.sbom.packages[] | {
-            identifier: ("${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}" + "_"  + .name),
+            identifier: .name,
             title: .name,
             icon: "dependabot",
             blueprint: "dependency",
@@ -50,6 +50,8 @@ jobs:
                 package_version: "${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}"
             }
             }]' < sbom.json > dependencies.json
+
+            jq '.sbom.packages[] | {dependencies: [.name]}' < sbom.json > packages.json
 
       - name: Upsert Package into Port
         uses: port-labs/port-github-action@v1
@@ -82,7 +84,8 @@ jobs:
             }
           relations: |-
             {
-              "related_package": "${{ env.IMAGE_NAME }}"
+              "related_package": "${{ env.IMAGE_NAME }}",
+              "dependencies": $(jq '.dependencies' packages.json) 
             }
 
       - name: Upsert Dependencies into Port
