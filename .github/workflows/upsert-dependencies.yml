@@ -48,7 +48,9 @@ jobs:
             }
             }]' < sbom.json > dependencies.json
 
-            jq '.sbom.packages[] | {dependencies: [.name]}' < sbom.json > packages.json
+            jq '.sbom.packages[] | [.name]}' < sbom.json > packages.json
+
+            echo "DEPENDENCIES=$(<packages.json)" >> $GITHUB_ENV
 
       - name: Upsert Package into Port
         uses: port-labs/port-github-action@v1
@@ -82,7 +84,7 @@ jobs:
           relations: |-
             {
               "related_package": "${{ env.IMAGE_NAME }}",
-              "dependencies": $(jq '.dependencies' packages.json) 
+              "dependencies": ${{ env.DEPENDENCIES }}
             }
 
       - name: Upsert Dependencies into Port
