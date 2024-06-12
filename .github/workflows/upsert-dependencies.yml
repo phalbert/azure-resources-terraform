@@ -13,7 +13,7 @@ env:
   IMAGE_TAG: latest
 
 jobs:
-  update_incident:
+  update_dependencies:
     runs-on: ubuntu-latest
     steps:
       - name: Notify Port (Initial)
