@@ -46,9 +46,7 @@ jobs:
             properties: {
                 version: .versionInfo
             },
-            relations: {
-                package_version: "${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}"
-            }
+            
             }]' < sbom.json > dependencies.json
 
       - name: Upsert Package into Port
