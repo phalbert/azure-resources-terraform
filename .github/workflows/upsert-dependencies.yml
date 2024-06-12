@@ -1,0 +1,107 @@
+name: Update Dependencies
+
+on:
+  workflow_dispatch:
+    inputs:
+      port_context: # Input for Port context (JSON)
+        description: "Port context (JSON format)"
+        required: true
+
+
+env:
+  IMAGE_NAME: test-image
+  IMAGE_TAG: latest
+
+jobs:
+  update_incident:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Port (Initial)
+        uses: port-labs/port-github-action@v1
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          operation: PATCH_RUN
+          runId: ${{ fromJson(inputs.port_context).runId }}
+          logMessage: |
+            Creating dependencies update for ${{ fromJson(inputs.port_context).entity.title }}
+
+      - name: Fetch Dependencies from GitHub API
+        id: fetch_dependencies
+        run: |
+            curl -X GET \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/${{ github.repository }}/dependency-graph/sbom" \
+            -o sbom.json
+
+      - name: Authenticate with Port API
+        id: authenticate
+        run: |
+            PORT_ACCESS_TOKEN=$(curl --location --request POST 'https://api.getport.io/v1/auth/access_token' \
+            --header 'Content-Type: application/json' \
+            --data-raw '{
+            "clientId": "${{ secrets.PORT_CLIENT_ID }}",
+            "clientSecret": "${{ secrets.PORT_CLIENT_SECRET }}"
+            }' | jq '.accessToken' | sed 's/"//g')
+            echo "PORT_ACCESS_TOKEN=$PORT_ACCESS_TOKEN" >> $GITHUB_ENV
+
+      - name: Transform and Map JSON to Port Dependency entities
+        run: |
+            jq '[.sbom.packages[] | {
+            identifier: ("${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}" + "_"  + .name),
+            title: .name,
+            icon: "dependabot",
+            blueprint: "dependency",
+            properties: {
+                version: .versionInfo
+            },
+            relations: {
+                package_version: "${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}"
+            }
+            }]' < sbom.json > dependencies.json
+
+      - name: Upsert Package into Port
+        uses: port-labs/port-github-action@v1
+        with:
+            clientId: ${{ secrets.PORT_CLIENT_ID }}
+            clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+            baseUrl: https://api.getport.io
+            operation: UPSERT
+            identifier: ${{ env.IMAGE_NAME }}
+            title: ${{ env.IMAGE_NAME }}
+            blueprint: package
+            properties: |-
+                {
+                    "in_house": true
+                }
+        
+      - name: Upsert Package Version into Port
+        uses: port-labs/port-github-action@v1
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          baseUrl: https://api.getport.io
+          operation: UPSERT
+          identifier: ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+          title: ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+          blueprint: package_version
+          properties: |-
+            {
+              "version": "${{ env.IMAGE_TAG }}"
+            }
+          relations: |-
+            {
+              "related_package": "${{ env.IMAGE_NAME }}"
+            }
+
+      - name: Upsert Dependencies into Port
+        run: |
+            while IFS= read -r entity; do
+            curl --location --request POST "https://api.getport.io/v1/blueprints/dependency/entities?upsert=true" \
+            --header "Authorization: Bearer ${{ env.PORT_ACCESS_TOKEN }}" \
+            --header "Content-Type: application/json" \
+            --data-raw "$entity"
+            done < <(jq -c '.[]' dependencies.json)
+
+
