@@ -21,6 +21,6 @@ jobs:
                 port_client_id: ${{ secrets.PORT_CLIENT_ID }}
                 port_client_secret: ${{ secrets.PORT_CLIENT_SECRET }}
                 config: |
-                    sentryHost: "https://sentry.io"
-                    sentryToken: "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"
-                    sentryOrganization: "https://mayicard.sentry.io"
+                    sentry_host: "https://sentry.io"
+                    sentry_token: "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"
+                    sentry_organization: "https://mayicard.sentry.io"
