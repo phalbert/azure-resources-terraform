@@ -23,4 +23,4 @@ jobs:
                 config: |
                     sentry_host: "https://sentry.io"
                     sentry_token: "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"
-                    sentry_organization: "https://mayicard.sentry.io"
+                    sentry_organization: "mayicard"
