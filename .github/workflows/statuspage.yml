@@ -1,0 +1,21 @@
+name: Statuspage Exporter Workflow
+
+on:
+    workflow_dispatch:
+    # schedule:
+    #     - cron: '0 */1 * * *' # Determines the scheduled interval for this workflow. This example runs every hour.
+
+jobs:
+    run-integration:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Run statuspage Integration
+              uses: port-labs/ocean-sail@v1
+              with:
+                type: sentry
+                port_client_id: ${{ secrets.PORT_CLIENT_ID }}
+                port_client_secret: ${{ secrets.PORT_CLIENT_SECRET }}
+                config: |
+                    statuspage_api_key: "5129c1f0a0874533afa056ae457abf87"
+                    statuspage_host: https://api.statuspage.io
