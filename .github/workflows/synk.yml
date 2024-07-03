@@ -13,6 +13,7 @@ jobs:
       - uses: port-labs/ocean-sail@v1
         with:
           type: 'snyk'
+          identifier: 'snyk'
           port_client_id: ${{ secrets.PORT_CLIENT_ID }}
           port_client_secret: ${{ secrets.PORT_CLIENT_SECRET }}
           config: |
