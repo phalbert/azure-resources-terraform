@@ -1,0 +1,25 @@
+name: Sonarqube Exporter Workflow
+# This workflow responsible for running sonarqube exporter.
+# integration.secrets.sonar_api_token: The SonarQube API token
+# integration.config.sonar_url: The SonarQube URL
+
+on:
+    workflow_dispatch:
+    # schedule:
+    #     - cron: '0 */1 * * *' # Determines the scheduled interval for this workflow. This example runs every hour.
+
+jobs:
+    run-integration:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Run sentry Integration
+              uses: port-labs/ocean-sail@v1
+              with:
+                type: sonarqube
+                port_client_id: ${{ secrets.PORT_CLIENT_ID }}
+                port_client_secret: ${{ secrets.PORT_CLIENT_SECRET }}
+                port_base_url: "https://api.getport.io"
+                config: |
+                    sonar_api_token: 6fd89c5208abf4d0d8577f80b64ee56854bfae72
+                    sonar_url: https://sonarcloud.io
