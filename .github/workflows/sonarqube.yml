@@ -13,7 +13,7 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-            - name: Run sentry Integration
+            - name: Run sonarqube Integration
               uses: port-labs/ocean-sail@v1
               with:
                 type: sonarqube
